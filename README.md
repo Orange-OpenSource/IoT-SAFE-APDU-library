@@ -35,9 +35,8 @@ On Arduino, this library forwards the IoT SAFE commands from the Rich OS to the
 applet thanks to AT CSIM commands (which must be supported by the modem).
 
 The Arduino LiveObjects sample uses
-[ArduinoBearSSL](https://github.com/Orange-OpenSource/ArduinoBearSSL/tree/fix-_ecSign).
-Until [PR#36](https://github.com/arduino-libraries/ArduinoBearSSL/pull/36) is
-merged and version 1.6.0 is released, the user must use this branch.
+[ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL).
+Until version 1.6.0 is released, the user must use the master branch.
 
 The Arduino MKR NB 1500 sample has been only tested over Ethernet (using an
 Ethernet shield and the SIM card for IoT SAFE only). Using the SIM card for
