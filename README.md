@@ -38,9 +38,9 @@ The Arduino LiveObjects sample uses
 [ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL).
 Until version 1.6.0 is released, the user must use the master branch.
 
-The Arduino MKR NB 1500 sample has been only tested over Ethernet (using an
-Ethernet shield and the SIM card for IoT SAFE only). Using the SIM card for
-IoT SAFE as well as the cellular connectivity has not, yet, been tested.
+The Arduino MKR NB 1500 sample has been tested over Ethernet (using an
+Ethernet shield and the SIM card for IoT SAFE only) as well as over
+cellular connectivity.
 
 ### Linux and PCSC lite
 

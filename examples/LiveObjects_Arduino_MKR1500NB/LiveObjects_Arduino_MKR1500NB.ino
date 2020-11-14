@@ -20,8 +20,8 @@
 #include <ArduinoJson.h>
 #include <MKRNB.h>
 
-// Comment to disable Ethernet and use cellular connection (untested for now)
-#define ETHERNET_ENABLED
+// Comment to disable Ethernet and use cellular connection
+//#define ETHERNET_ENABLED
 
 #include "IoTSAFE.h"
 
@@ -268,6 +268,10 @@ void setup() {
   // used to validate the servers certificate
   ArduinoBearSSL.onGetTime(getTime);
 
+  // Wait a little before sending command to applet as we're getting strange
+  // behavior otherwise (i.e. an empty file is returned)
+  delay(2000);
+
   br_x509_certificate br_client_certificate =
     iotSAFE.readClientCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
       sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
@@ -293,15 +297,15 @@ void loop() {
 #ifdef ETHERNET_ENABLED
     if (!mqttClient.connected())
 #else
-    if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY || !mqttClient.connected())
+    if (nbAccess.status() != NB_READY || !mqttClient.connected())
 #endif
       connectionManager(1);
 
     sendData();
   }
 
-    delay (1000);
-    mqttClient.poll();
+  delay (1000);
+  mqttClient.poll();
 }
 
 void connectionManager(bool _way = 1) {
@@ -309,7 +313,11 @@ void connectionManager(bool _way = 1) {
     case 1:
 #ifndef ETHERNET_ENABLED
       Serial.println("Connecting to cellular network");
+#ifdef PIN_NUMBER
       while (nbAccess.begin(PIN_NUMBER) != NB_READY)
+#else
+      while (nbAccess.begin() != NB_READY)
+#endif
         Serial.print(".");
 #endif
 
