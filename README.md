@@ -34,12 +34,20 @@ This library has been tested with applets from two different manufacturers on:
 On Arduino, this library forwards the IoT SAFE commands from the Rich OS to the
 applet thanks to AT CSIM commands (which must be supported by the modem).
 
-The Arduino LiveObjects sample uses
+Three examples are available:
+ * a basic example (without any network connection)
+ * an example establishing a mutual MQTTS connection with Orange Live Objects
+ * an example establishing a mutual MQTTS connection with Azure IoT Hub
+
+The Arduino samples use
 [ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL).
 
-The Arduino MKR NB 1500 sample has been tested over Ethernet (using an
-Ethernet shield and the SIM card for IoT SAFE only) as well as over
+The LiveObjects Arduino MKR NB 1500 sample has been tested over Ethernet (using
+an Ethernet shield and the SIM card for IoT SAFE only) as well as over
 cellular connectivity.
+
+The Azure IoT Hub Arduino MKR NB 1500 sample has been tested over cellular
+connectivity.
 
 ### Linux and PCSC lite
 
