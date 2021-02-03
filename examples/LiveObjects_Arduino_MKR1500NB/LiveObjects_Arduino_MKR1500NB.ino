@@ -7,7 +7,7 @@
  */
 
 /**
- * @file   Arduino_MKR1500NB.ino
+ * @file   LiveObjects_Arduino_MKR1500NB.ino
  * @brief  Advanced Arduino IoT SAFE which use a preloaded key and certificate to
  *         connect to LiveObjects.
  */
