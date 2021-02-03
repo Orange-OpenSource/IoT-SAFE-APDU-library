@@ -15,12 +15,46 @@
 
 #define IOT_SAFE_MAX_COMMON_NAME_SIZE 64
 
+IoTSAFECertificate::IoTSAFECertificate()
+    :
+    m_nDataLength(0)
+{}
+
+IoTSAFECertificate::~IoTSAFECertificate()
+{}
+
+br_x509_certificate IoTSAFECertificate::getCertificate()
+{
+  br_x509_certificate br_cert = { (unsigned char *)m_Data, m_nDataLength };
+  return br_cert;
+}
+
+String IoTSAFECertificate::getCertificateCommonName()
+{
+  char client_common_name[IOT_SAFE_MAX_COMMON_NAME_SIZE];
+
+  memset(client_common_name, 0, sizeof(client_common_name));
+
+  for (int i = 5; i < m_nDataLength; i++) {
+    // Find common name
+    if (m_Data[i-5] == 0x55 && m_Data[i-4] == 0x04 && m_Data[i-3] == 0x03)
+    {
+
+      if (m_Data[i-1] > sizeof(client_common_name))
+        return String("");
+
+      memcpy(client_common_name, &m_Data[i], m_Data[i-1]);
+    }
+  }
+  return String(client_common_name);
+}
+
+
 IoTSAFE::IoTSAFE(const uint8_t* pAID, uint8_t nAIDLength)
     :
     m_AID(pAID),
     m_nAIDLength(nAIDLength),
-    m_nChannel(0),
-    mClientCertiticateLength(0)
+    m_nChannel(0)
 {}
 
 IoTSAFE::~IoTSAFE()
@@ -36,53 +70,29 @@ void IoTSAFE::finish()
   iot_safe_finish(m_nChannel);
 }
 
-String IoTSAFE::getClientCertificateCommonName()
-{
-  char client_common_name[IOT_SAFE_MAX_COMMON_NAME_SIZE];
-
-  memset(client_common_name, 0, sizeof(client_common_name));
-
-  for (int i = 5; i < sizeof(m_ClientCertificate); i++) {
-    // Find common name
-    if (m_ClientCertificate[i-5] == 0x55 && m_ClientCertificate[i-4] == 0x04 &&
-      m_ClientCertificate[i-3] == 0x03)
-    {
-
-      if (m_ClientCertificate[i-1] > sizeof(client_common_name))
-        return String("");
-
-      memcpy(client_common_name, &m_ClientCertificate[i],
-        m_ClientCertificate[i-1]);
-    }
-  }
-  return String(client_common_name);
-}
-
-br_x509_certificate IoTSAFE::readClientCertificate(const uint8_t *pFileID,
+IoTSAFECertificate IoTSAFE::readCertificate(const uint8_t *pFileID,
   uint8_t nFileIDLength)
 {
-  memset(m_ClientCertificate, 0, sizeof(m_ClientCertificate));
+  IoTSAFECertificate certificate;
 
   if (init() == IOT_SAFE_SUCCESS)
   {
     iot_safe_read_file(m_nChannel, pFileID, nFileIDLength, NULL, 0,
-      m_ClientCertificate, sizeof(m_ClientCertificate));
+      certificate.m_Data, sizeof(certificate.m_Data));
 
     finish();
   }
-
+  
   // Consider that the file is finished as soon as there is a value
   // different from 0x00
-  mClientCertiticateLength = sizeof(m_ClientCertificate);
-  while (mClientCertiticateLength > 0) {
-    if (m_ClientCertificate[mClientCertiticateLength - 1] != 0x00)
+  certificate.m_nDataLength = sizeof(certificate.m_Data);
+  while (certificate.m_nDataLength > 0) {
+    if (certificate.m_Data[certificate.m_nDataLength - 1] != 0x00)
       break;
-    mClientCertiticateLength--;
+    certificate.m_nDataLength--;
   }
 
-  br_x509_certificate br_client_cert =
-    { (unsigned char *)m_ClientCertificate, mClientCertiticateLength };
-  return br_client_cert;
+  return certificate;
 }
 
 size_t IoTSAFE::sign(const uint8_t *pKeyID, uint8_t nKeyIDLength,

@@ -7,9 +7,9 @@
  */
 
 /**
- * @file   Azure_IoT_Hub_Arduino_MKR1500NB.ino
+ * @file   AWS_IoT_Arduino_MKR1500NB.ino
  * @brief  Advanced Arduino IoT SAFE which use a preloaded key and certificate to
- *         connect to Azure IoT Hub.
+ *         connect to AWS IoT Core.
  */
 
 #include <ArduinoBearSSL.h>
@@ -20,9 +20,8 @@
 #include "IoTSAFE.h"
 
 /////// Enter your sensitive data in arduino_secrets.h
-const char pinnumber[]   = SECRET_PINNUMBER;
-const char broker[]      = SECRET_BROKER;
-String     deviceId;
+const char pinnumber[]     = SECRET_PINNUMBER;
+const char broker[]        = SECRET_BROKER;
 
 // Use a custom AID
 static const uint8_t IOT_SAFE_CUSTOM_AID[] = {
@@ -31,14 +30,17 @@ static const uint8_t IOT_SAFE_CUSTOM_AID[] = {
 
 // Define the private key ID inside the IoT SAFE applet
 static const uint8_t IOT_SAFE_PRIVATE_KEY_ID[] = { 0x01 };
-// Define the certificate file ID inside the IoT SAFE applet
+// Define the client certificate file ID inside the IoT SAFE applet
 static const uint8_t IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID[] = { 0x02 };
+// Define the CA certificate file ID inside the IoT SAFE applet
+static const uint8_t IOT_SAFE_CA_CERTIFICATE_FILE_ID[] = { 0x03 };
 
 NB nbAccess;
 GPRS gprs;
 NBModem modem;
 IoTSAFE iotSAFE(IOT_SAFE_CUSTOM_AID, sizeof(IOT_SAFE_CUSTOM_AID));
 IoTSAFECertificate client_certificate;
+IoTSAFECertificate root_ca_certificate;
 
 NBClient      nbClient;            // Used for the TCP socket connection
 BearSSLClient sslClient(nbClient); // Used for SSL/TLS connection
@@ -54,7 +56,7 @@ size_t iot_safe_sign(const br_ec_impl *impl, const br_hash_class *hf,
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial);
 
   // start modem test (reset and check response)
@@ -76,22 +78,24 @@ void setup() {
   client_certificate =
     iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
       sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
-  sslClient.setEccCert(client_certificate.getCertificate());
+
+  root_ca_certificate =
+    iotSAFE.readCertificate(IOT_SAFE_CA_CERTIFICATE_FILE_ID,
+      sizeof(IOT_SAFE_CA_CERTIFICATE_FILE_ID));
+
+  br_x509_certificate br_chain[2];
+  br_chain[0] = client_certificate.getCertificate();
+  br_chain[1] = root_ca_certificate.getCertificate();
+  sslClient.setEccChain(br_chain, 2);
+
   sslClient.setEccSign(iot_safe_sign);
-  deviceId = client_certificate.getCertificateCommonName();
 
-  // Set the client id used for MQTT as the device id
-  mqttClient.setId(deviceId);
-
-  // Set the username to "<broker>/<device id>/?api-version=2018-06-30" and empty password
-  String username;
-
-  username += broker;
-  username += "/";
-  username += deviceId;
-  username += "/?api-version=2018-06-30";
-
-  mqttClient.setUsernamePassword(username, "");
+  // Optional, set the client id used for MQTT,
+  // each device that is connected to the broker
+  // must have a unique client id. The MQTTClient will generate
+  // a client id for you based on the millis() value if not set
+  //
+  // mqttClient.setId("clientId");
 
   // Set the message callback, this function is
   // called when the MQTTClient receives a message
@@ -120,7 +124,7 @@ void loop() {
 }
 
 unsigned long getTime() {
-  // get the current time from the cellular module
+  // get the current time from the NB module
   return nbAccess.getTime();
 }
 
@@ -155,14 +159,14 @@ void connectMQTT() {
   Serial.println();
 
   // subscribe to a topic
-  mqttClient.subscribe("devices/" + deviceId + "/messages/devicebound/#");
+  mqttClient.subscribe("arduino/incoming");
 }
 
 void publishMessage() {
   Serial.println("Publishing message");
 
   // send message, the Print interface can be used to set the message contents
-  mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
+  mqttClient.beginMessage("arduino/outgoing");
   mqttClient.print("hello ");
   mqttClient.print(millis());
   mqttClient.endMessage();

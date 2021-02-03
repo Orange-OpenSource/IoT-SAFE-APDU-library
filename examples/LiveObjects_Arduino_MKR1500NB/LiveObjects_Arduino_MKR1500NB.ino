@@ -161,6 +161,7 @@ NBClient nbClient;
 NBModem modem;
 NB nbAccess;
 IoTSAFE iotSAFE(IOT_SAFE_CUSTOM_AID, sizeof(IOT_SAFE_CUSTOM_AID));
+IoTSAFECertificate client_certificate;
 BearSSLClient sslClient(nbClient,TAs,1);
 MqttClient mqttClient(sslClient);
 
@@ -272,13 +273,13 @@ void setup() {
   // behavior otherwise (i.e. an empty file is returned)
   delay(2000);
 
-  br_x509_certificate br_client_certificate =
-    iotSAFE.readClientCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
+  client_certificate =
+    iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
       sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
-  sslClient.setEccCert(br_client_certificate);
+  sslClient.setEccCert(client_certificate.getCertificate());
   sslClient.setEccSign(iot_safe_sign);
 
-  mqttClient.setId(iotSAFE.getClientCertificateCommonName());
+  mqttClient.setId(client_certificate.getCertificateCommonName());
   mqttClient.setUsernamePassword(mqtt_user, mqtt_pass);
   mqttClient.onMessage(onMessageReceived);
 

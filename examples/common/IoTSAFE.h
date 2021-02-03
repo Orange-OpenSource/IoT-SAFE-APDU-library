@@ -16,15 +16,26 @@
 
 #define IOT_SAFE_MAX_FILE_SIZE 512
 
+class IoTSAFECertificate
+{
+  public:
+    IoTSAFECertificate();
+    ~IoTSAFECertificate();
+    br_x509_certificate getCertificate();
+    String getCertificateCommonName();
+
+    uint8_t m_Data[IOT_SAFE_MAX_FILE_SIZE];
+    size_t m_nDataLength;
+};
+
 class IoTSAFE
 {
   public:
     IoTSAFE(const uint8_t *pAID=IOT_SAFE_AID,
       uint8_t nAIDLength=sizeof(IOT_SAFE_AID));
     ~IoTSAFE();
-    br_x509_certificate readClientCertificate(const uint8_t *pFileID,
+    IoTSAFECertificate readCertificate(const uint8_t *pFileID,
       uint8_t nFileIDLength);
-    String getClientCertificateCommonName();
     size_t sign(const uint8_t *pKeyID, uint8_t nKeyIDLength,
       const br_ec_impl *pImpl, const br_hash_class *pHF,
       const void *pHashValue, const br_ec_private_key *pSk, void *pSig);
@@ -35,6 +46,4 @@ class IoTSAFE
     const uint8_t *m_AID;
     uint8_t m_nAIDLength;
     uint8_t m_nChannel;
-    uint8_t m_ClientCertificate[IOT_SAFE_MAX_FILE_SIZE];
-    size_t mClientCertiticateLength;
 };

@@ -34,10 +34,12 @@ This library has been tested with applets from two different manufacturers on:
 On Arduino, this library forwards the IoT SAFE commands from the Rich OS to the
 applet thanks to AT CSIM commands (which must be supported by the modem).
 
-Three examples are available:
+Four examples are available:
  * a basic example (without any network connection)
  * an example establishing a mutual MQTTS connection with Orange Live Objects
  * an example establishing a mutual MQTTS connection with Azure IoT Hub
+ * an example establishing a mutual MQTTS connection with AWS IoT Core
+   (through just-in-time registration)
 
 The Arduino samples use
 [ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL).
@@ -48,6 +50,11 @@ cellular connectivity.
 
 The Azure IoT Hub Arduino MKR NB 1500 sample has been tested over cellular
 connectivity.
+
+The AWS IoT Core Arduino MKR NB 1500 sample has been tested over cellular
+connectivity. This example depends on the master branch of ArduinoBearSSL
+to be able to provide the client certificate chain for Just-in-time
+provisioning (until version 1.7.0 is released).
 
 ### Linux and PCSC lite
 
