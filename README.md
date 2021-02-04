@@ -36,7 +36,6 @@ applet thanks to AT CSIM commands (which must be supported by the modem).
 
 The Arduino LiveObjects sample uses
 [ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL).
-Until version 1.6.0 is released, the user must use the master branch.
 
 The Arduino MKR NB 1500 sample has been tested over Ethernet (using an
 Ethernet shield and the SIM card for IoT SAFE only) as well as over
