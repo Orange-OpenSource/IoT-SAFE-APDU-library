@@ -19,7 +19,8 @@ IoTSAFE::IoTSAFE(const uint8_t* pAID, uint8_t nAIDLength)
     :
     m_AID(pAID),
     m_nAIDLength(nAIDLength),
-    m_nChannel(0)
+    m_nChannel(0),
+    mClientCertiticateLength(0)
 {}
 
 IoTSAFE::~IoTSAFE()
@@ -70,9 +71,17 @@ br_x509_certificate IoTSAFE::readClientCertificate(const uint8_t *pFileID,
     finish();
   }
 
+  // Consider that the file is finished as soon as there is a value
+  // different from 0x00
+  mClientCertiticateLength = sizeof(m_ClientCertificate);
+  while (mClientCertiticateLength > 0) {
+    if (m_ClientCertificate[mClientCertiticateLength - 1] != 0x00)
+      break;
+    mClientCertiticateLength--;
+  }
+
   br_x509_certificate br_client_cert =
-    { (unsigned char *)m_ClientCertificate,
-    sizeof(m_ClientCertificate) };
+    { (unsigned char *)m_ClientCertificate, mClientCertiticateLength };
   return br_client_cert;
 }
 

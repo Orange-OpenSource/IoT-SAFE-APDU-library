@@ -36,4 +36,5 @@ class IoTSAFE
     uint8_t m_nAIDLength;
     uint8_t m_nChannel;
     uint8_t m_ClientCertificate[IOT_SAFE_MAX_FILE_SIZE];
+    size_t mClientCertiticateLength;
 };
