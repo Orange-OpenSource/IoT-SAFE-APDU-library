@@ -106,7 +106,7 @@ typedef uint8_t iot_safe_file_usage_t;
 typedef struct iot_safe_application
 {
   uint8_t version;                                      /**< SIM Alliance version. */
-  uint8_t id[20];                                       /**< applet proprietary identifier. */
+  uint8_t id[0x20];                                     /**< applet proprietary identifier. */
   uint8_t max_files;                                    /**< Max number of files. */
   uint8_t max_private_keys;                             /**< Max number of private keys. */
   uint8_t max_public_keys;                              /**< Max number public keys. */
