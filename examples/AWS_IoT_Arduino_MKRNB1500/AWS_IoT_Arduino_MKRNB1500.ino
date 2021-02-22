@@ -56,15 +56,15 @@ size_t iot_safe_sign(const br_ec_impl *impl, const br_hash_class *hf,
 }
 
 void setup() {
-  Serial.begin(115200);
-  while (!Serial);
+  SerialUSB.begin(115200);
+  while (!SerialUSB);
 
   // start modem test (reset and check response)
-  Serial.print("Starting modem test...");
+  SerialUSB.print("Starting modem test...");
   if (modem.begin()) {
-    Serial.println("modem.begin() succeeded");
+    SerialUSB.println("modem.begin() succeeded");
   } else {
-    Serial.println("ERROR, no modem answer.");
+    SerialUSB.println("ERROR, no modem answer.");
   }
 
   // Set a callback to get the current time
@@ -112,30 +112,30 @@ unsigned long getTime() {
 }
 
 void connectNB() {
-  Serial.println("Attempting to connect to the cellular network");
+  SerialUSB.println("Attempting to connect to the cellular network");
 
   while ((nbAccess.begin(pinnumber) != NB_READY) ||
          (gprs.attachGPRS() != GPRS_READY)) {
     // failed, retry
-    Serial.print(".");
+    SerialUSB.print(".");
     delay(1000);
   }
 
-  Serial.println("You're connected to the cellular network");
-  Serial.println();
+  SerialUSB.println("You're connected to the cellular network");
+  SerialUSB.println();
 }
 
 void connectMQTT() {
-  Serial.print("Attempting to connect to MQTT broker: ");
-  Serial.print(broker);
-  Serial.println(" ");
+  SerialUSB.print("Attempting to connect to MQTT broker: ");
+  SerialUSB.print(broker);
+  SerialUSB.println(" ");
 
   while (true) {
     // OBKG process can be triggered by OTA and can take some time on the applet as:
     // - a new key pair must be generated,
     // - the CSR must be send through OTA
     // - the certificate must be send back by OTA
-    Serial.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+    SerialUSB.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
     delay(10000);
     client_certificate =
       iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
@@ -150,22 +150,22 @@ void connectMQTT() {
     br_chain[1] = root_ca_certificate.getCertificate();
     sslClient.setEccChain(br_chain, 2);
     if (!mqttClient.connect(broker, 8883)) {
-      Serial.println("Unable to connect, retry in 10 seconds");
-      Serial.println(mqttClient.connectError());
+      SerialUSB.println("Unable to connect, retry in 10 seconds");
+      SerialUSB.println(mqttClient.connectError());
     } else
       break;
   }
-  Serial.println();
+  SerialUSB.println();
 
-  Serial.println("You're connected to the MQTT broker");
-  Serial.println();
+  SerialUSB.println("You're connected to the MQTT broker");
+  SerialUSB.println();
 
   // subscribe to a topic
   mqttClient.subscribe("arduino/incoming");
 }
 
 void publishMessage() {
-  Serial.println("Publishing message");
+  SerialUSB.println("Publishing message");
 
   // send message, the Print interface can be used to set the message contents
   mqttClient.beginMessage("arduino/outgoing");
@@ -176,17 +176,17 @@ void publishMessage() {
 
 void onMessageReceived(int messageSize) {
   // we received a message, print out the topic and contents
-  Serial.print("Received a message with topic '");
-  Serial.print(mqttClient.messageTopic());
-  Serial.print("', length ");
-  Serial.print(messageSize);
-  Serial.println(" bytes:");
+  SerialUSB.print("Received a message with topic '");
+  SerialUSB.print(mqttClient.messageTopic());
+  SerialUSB.print("', length ");
+  SerialUSB.print(messageSize);
+  SerialUSB.println(" bytes:");
 
   // use the Stream interface to print the contents
   while (mqttClient.available()) {
-    Serial.print((char)mqttClient.read());
+    SerialUSB.print((char)mqttClient.read());
   }
-  Serial.println();
+  SerialUSB.println();
 
-  Serial.println();
+  SerialUSB.println();
 }

@@ -201,7 +201,7 @@ void sendNTPpacket(const char * address) {
 
 unsigned long getTime() {
 #ifdef ETHERNET_ENABLED
-  Serial.println("Getting time from NTP...");
+  SerialUSB.println("Getting time from NTP...");
   sendNTPpacket(timeServer); // send an NTP packet to a time server
    
   // wait to see if a reply is available
@@ -227,34 +227,34 @@ unsigned long getTime() {
     return epoch;
   }
 #else
-  Serial.println("Getting time from the cellular module...");
+  SerialUSB.println("Getting time from the cellular module...");
   // get the current time from the cellular module
   return nbAccess.getTime();
 #endif
 }
 
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
+  SerialUSB.begin(9600);
+  while (!SerialUSB);
 
   // start modem test (reset and check response)
-  Serial.print("Starting modem test...");
+  SerialUSB.print("Starting modem test...");
   if (modem.begin()) {
-    Serial.println("modem.begin() succeeded");
+    SerialUSB.println("modem.begin() succeeded");
   } else {
-    Serial.println("ERROR, no modem answer.");
+    SerialUSB.println("ERROR, no modem answer.");
   }
 
 #ifdef ETHERNET_ENABLED
   // start Ethernet and UDP
-  Serial.println("Starting Ethernet...");
+  SerialUSB.println("Starting Ethernet...");
   if (Ethernet.begin(mac) == 0) {
-    Serial.println("Failed to configure Ethernet using DHCP");
+    SerialUSB.println("Failed to configure Ethernet using DHCP");
     // Check for Ethernet hardware present
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-      Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+      SerialUSB.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
     } else if (Ethernet.linkStatus() == LinkOFF) {
-      Serial.println("Ethernet cable is not connected.");
+      SerialUSB.println("Ethernet cable is not connected.");
     }
     // no point in carrying on, so do nothing forevermore:
     while (true) {
@@ -262,7 +262,7 @@ void setup() {
     }
   }
 
-  Serial.println("Starting UDP...");
+  SerialUSB.println("Starting UDP...");
   Udp.begin(localPort);
 #endif
   // Set a callback to get the current time
@@ -280,11 +280,11 @@ void setup() {
 void loop() {
   if (millis() - lastTransmission > transmissionFrequency) {
     // get data from sensors
-    Serial.println("Sampling data");
+    SerialUSB.println("Sampling data");
     sampleData();
 
     // connect and send data to Live Objects
-    Serial.println("Sending data to Live Objects");
+    SerialUSB.println("Sending data to Live Objects");
 #ifdef ETHERNET_ENABLED
     if (!mqttClient.connected())
 #else
@@ -303,27 +303,27 @@ void connectionManager(bool _way = 1) {
   switch (_way) {
     case 1:
 #ifndef ETHERNET_ENABLED
-      Serial.println("Connecting to cellular network");
+      SerialUSB.println("Connecting to cellular network");
 #ifdef PIN_NUMBER
       while (nbAccess.begin(PIN_NUMBER) != NB_READY)
 #else
       while (nbAccess.begin() != NB_READY)
 #endif
-        Serial.print(".");
+        SerialUSB.print(".");
 #endif
 
-      Serial.println("\nYou're connected to the network");
+      SerialUSB.println("\nYou're connected to the network");
       
-      Serial.print("Connecting to MQTT broker '");
-      Serial.print(mqtt_broker);
-      Serial.print("'");
+      SerialUSB.print("Connecting to MQTT broker '");
+      SerialUSB.print(mqtt_broker);
+      SerialUSB.print("'");
       
       while (true) {
         // OBKG process can be triggered by OTA and can take some time on the applet as:
         // - a new key pair must be generated,
         // - the CSR must be send through OTA
         // - the certificate must be send back by OTA
-        Serial.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+        SerialUSB.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
         delay(10000);
         client_certificate =
           iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
@@ -331,13 +331,13 @@ void connectionManager(bool _way = 1) {
         sslClient.setEccCert(client_certificate.getCertificate());
         mqttClient.setId(client_certificate.getCertificateCommonName());
         if (!mqttClient.connect(mqtt_broker, mqtt_port))
-          Serial.println("Unable to connect, retry in 10 seconds");
+          SerialUSB.println("Unable to connect, retry in 10 seconds");
         else
           break;
       }
       
-      Serial.println("\nYou're connected to the MQTT broker");
-      Serial.println();
+      SerialUSB.println("\nYou're connected to the MQTT broker");
+      SerialUSB.println();
 
       mqttClient.subscribe(mqtt_subcfg);
       mqttClient.poll();
@@ -345,30 +345,30 @@ void connectionManager(bool _way = 1) {
       break;
 
     case 0:
-      Serial.println("\nClosing MQTT connection...");
+      SerialUSB.println("\nClosing MQTT connection...");
       mqttClient.stop();
-      Serial.println("Disconnecting from cellular network...");
+      SerialUSB.println("Disconnecting from cellular network...");
       nbAccess.shutdown();
-      Serial.println("Offline.\n");
+      SerialUSB.println("Offline.\n");
       break;
   }
 }
 
 void publishMessage(const char* topic, const char* _buffer) {
-  Serial.print("Publishing message on topic '");
+  SerialUSB.print("Publishing message on topic '");
   mqttClient.beginMessage(topic);
   mqttClient.print(_buffer);
   mqttClient.endMessage();
-  Serial.print(topic);
-  Serial.println("':");
-  Serial.println(_buffer);
+  SerialUSB.print(topic);
+  SerialUSB.println("':");
+  SerialUSB.println(_buffer);
 }
   
 void onMessageReceived(int messageSize) {
   String topic = mqttClient.messageTopic();
-  Serial.print("Received a message with topic '");
-  Serial.print(topic);
-  Serial.println("':");
+  SerialUSB.print("Received a message with topic '");
+  SerialUSB.print(topic);
+  SerialUSB.println("':");
 
   char _buffer[300];
   
@@ -376,7 +376,7 @@ void onMessageReceived(int messageSize) {
   while (mqttClient.available())
     _buffer[i++] = (char)mqttClient.read();
   _buffer[i]=0;
-  Serial.println(_buffer);
+  SerialUSB.println(_buffer);
   
   payload.clear();
   deserializeJson(payload, _buffer);

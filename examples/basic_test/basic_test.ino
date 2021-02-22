@@ -41,7 +41,7 @@ void iot_safe_test_verify()
   uint16_t signature_length = 0;
   iot_safe_error_t ret;
 
-  Serial.println("\nEnter iot_safe_test_verify");
+  SerialUSB.println("\nEnter iot_safe_test_verify");
 
   memset(signature, 0, sizeof(signature));
 
@@ -66,9 +66,9 @@ void iot_safe_test_verify()
                   signature, signature_length);
 
   if (ret != IOT_SAFE_SUCCESS)
-     Serial.println("\nVerify failure\n");
+     SerialUSB.println("\nVerify failure\n");
   else
-     Serial.println("\nVerify success\n");
+     SerialUSB.println("\nVerify success\n");
      
   iot_safe_finish(channel);
 }
@@ -77,7 +77,7 @@ void iot_safe_test_file()
 {
   uint8_t channel = 0;
   
-  Serial.println("\nEnter iot_safe_test_file");
+  SerialUSB.println("\nEnter iot_safe_test_file");
 
   // Init communication channel
   iot_safe_init(IOT_SAFE_AID, sizeof(IOT_SAFE_AID), &channel);
@@ -92,15 +92,15 @@ void iot_safe_test_file()
 }
 
 void setup() {
-  Serial.begin(9600);
-  while (!Serial);
+  SerialUSB.begin(9600);
+  while (!SerialUSB);
 
   // start modem test (reset and check response)
-  Serial.print("Starting modem test...");
+  SerialUSB.print("Starting modem test...");
   if (modem.begin()) {
-    Serial.println("modem.begin() succeeded");
+    SerialUSB.println("modem.begin() succeeded");
   } else {
-    Serial.println("ERROR, no modem answer.");
+    SerialUSB.println("ERROR, no modem answer.");
   }
   delay(5000);
 }
