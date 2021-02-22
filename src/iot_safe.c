@@ -490,9 +490,14 @@ iot_safe_error_t iot_safe_read_file(uint8_t channel, const uint8_t *file_id,
     else
       data_chunk_size = data_length - data_position;
 
+    // IoT SAFE standard specifies that Le should be equal to 00h but this
+    // raises issue with modem such as Sequans Monarch GMS01Q which returns
+    // incomplete answer when the answer is greater than its internal buffer
+    // (e.g. 256). So set Le to data_chunk_size to avoid any issue.
     ret = iot_safe_sendAPDU(channel, IOT_SAFE_INS_READ_FILE,
       (uint8_t)(data_position >> 8), (uint8_t)data_position, sizeof(command),
-      command, 0x00, 1, response, sizeof(response), &response_length);
+      command, data_chunk_size, 1, response, data_chunk_size,
+      &response_length);
 
     if ((uint8_t) (ret >> 8) == 0x61)
       ret = iot_safe_sendAPDU(channel, IOT_SAFE_INS_GET_RESPONSE, 0x00, 0x00,
