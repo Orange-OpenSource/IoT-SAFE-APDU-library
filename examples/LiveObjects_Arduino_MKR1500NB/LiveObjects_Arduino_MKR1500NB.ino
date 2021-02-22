@@ -234,7 +234,7 @@ unsigned long getTime() {
 }
 
 void setup() {
-  SerialUSB.begin(9600);
+  SerialUSB.begin(115200);
   while (!SerialUSB);
 
   // start modem test (reset and check response)
