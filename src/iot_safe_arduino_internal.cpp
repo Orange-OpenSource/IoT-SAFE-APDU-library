@@ -52,7 +52,7 @@ void iot_safe_arduino_printf(char const *format, ...)
     return;
   }
 
-  SerialUSB.print(_trace_str);
+  SERIAL_PORT_MONITOR.print(_trace_str);
 }
 
 iot_safe_error_t iot_safe_arduino_sendAT(const char *at, uint8_t *response,

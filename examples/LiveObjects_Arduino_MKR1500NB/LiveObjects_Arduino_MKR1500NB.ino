@@ -201,7 +201,7 @@ void sendNTPpacket(const char * address) {
 
 unsigned long getTime() {
 #ifdef ETHERNET_ENABLED
-  SerialUSB.println("Getting time from NTP...");
+  SERIAL_PORT_MONITOR.println("Getting time from NTP...");
   sendNTPpacket(timeServer); // send an NTP packet to a time server
    
   // wait to see if a reply is available
@@ -227,34 +227,34 @@ unsigned long getTime() {
     return epoch;
   }
 #else
-  SerialUSB.println("Getting time from the cellular module...");
+  SERIAL_PORT_MONITOR.println("Getting time from the cellular module...");
   // get the current time from the cellular module
   return nbAccess.getTime();
 #endif
 }
 
 void setup() {
-  SerialUSB.begin(115200);
-  while (!SerialUSB);
+  SERIAL_PORT_MONITOR.begin(115200);
+  while (!SERIAL_PORT_MONITOR);
 
   // start modem test (reset and check response)
-  SerialUSB.print("Starting modem test...");
+  SERIAL_PORT_MONITOR.print("Starting modem test...");
   if (modem.begin()) {
-    SerialUSB.println("modem.begin() succeeded");
+    SERIAL_PORT_MONITOR.println("modem.begin() succeeded");
   } else {
-    SerialUSB.println("ERROR, no modem answer.");
+    SERIAL_PORT_MONITOR.println("ERROR, no modem answer.");
   }
 
 #ifdef ETHERNET_ENABLED
   // start Ethernet and UDP
-  SerialUSB.println("Starting Ethernet...");
+  SERIAL_PORT_MONITOR.println("Starting Ethernet...");
   if (Ethernet.begin(mac) == 0) {
-    SerialUSB.println("Failed to configure Ethernet using DHCP");
+    SERIAL_PORT_MONITOR.println("Failed to configure Ethernet using DHCP");
     // Check for Ethernet hardware present
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-      SerialUSB.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+      SERIAL_PORT_MONITOR.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
     } else if (Ethernet.linkStatus() == LinkOFF) {
-      SerialUSB.println("Ethernet cable is not connected.");
+      SERIAL_PORT_MONITOR.println("Ethernet cable is not connected.");
     }
     // no point in carrying on, so do nothing forevermore:
     while (true) {
@@ -262,7 +262,7 @@ void setup() {
     }
   }
 
-  SerialUSB.println("Starting UDP...");
+  SERIAL_PORT_MONITOR.println("Starting UDP...");
   Udp.begin(localPort);
 #endif
   // Set a callback to get the current time
@@ -280,11 +280,11 @@ void setup() {
 void loop() {
   if (millis() - lastTransmission > transmissionFrequency) {
     // get data from sensors
-    SerialUSB.println("Sampling data");
+    SERIAL_PORT_MONITOR.println("Sampling data");
     sampleData();
 
     // connect and send data to Live Objects
-    SerialUSB.println("Sending data to Live Objects");
+    SERIAL_PORT_MONITOR.println("Sending data to Live Objects");
 #ifdef ETHERNET_ENABLED
     if (!mqttClient.connected())
 #else
@@ -303,27 +303,27 @@ void connectionManager(bool _way = 1) {
   switch (_way) {
     case 1:
 #ifndef ETHERNET_ENABLED
-      SerialUSB.println("Connecting to cellular network");
+      SERIAL_PORT_MONITOR.println("Connecting to cellular network");
 #ifdef PIN_NUMBER
       while (nbAccess.begin(PIN_NUMBER) != NB_READY)
 #else
       while (nbAccess.begin() != NB_READY)
 #endif
-        SerialUSB.print(".");
+        SERIAL_PORT_MONITOR.print(".");
 #endif
 
-      SerialUSB.println("You're connected to the network");
+      SERIAL_PORT_MONITOR.println("You're connected to the network");
       
-      SerialUSB.print("Connecting to MQTT broker '");
-      SerialUSB.print(mqtt_broker);
-      SerialUSB.print("'");
+      SERIAL_PORT_MONITOR.print("Connecting to MQTT broker '");
+      SERIAL_PORT_MONITOR.print(mqtt_broker);
+      SERIAL_PORT_MONITOR.print("'");
       
       while (true) {
         // OBKG process can be triggered by OTA and can take some time on the applet as:
         // - a new key pair must be generated,
         // - the CSR must be send through OTA
         // - the certificate must be send back by OTA
-        SerialUSB.println("Waiting 10 seconds to let time for the IoT SAFE OBKG process");
+        SERIAL_PORT_MONITOR.println("Waiting 10 seconds to let time for the IoT SAFE OBKG process");
         delay(10000);
         client_certificate =
           iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
@@ -331,13 +331,13 @@ void connectionManager(bool _way = 1) {
         sslClient.setEccCert(client_certificate.getCertificate());
         mqttClient.setId(client_certificate.getCertificateCommonName());
         if (!mqttClient.connect(mqtt_broker, mqtt_port))
-          SerialUSB.println("Unable to connect, retry in 10 seconds");
+          SERIAL_PORT_MONITOR.println("Unable to connect, retry in 10 seconds");
         else
           break;
       }
       
-      SerialUSB.println("You're connected to the MQTT broker");
-      SerialUSB.println();
+      SERIAL_PORT_MONITOR.println("You're connected to the MQTT broker");
+      SERIAL_PORT_MONITOR.println();
 
       mqttClient.subscribe(mqtt_subcfg);
       mqttClient.poll();
@@ -345,30 +345,30 @@ void connectionManager(bool _way = 1) {
       break;
 
     case 0:
-      SerialUSB.println("Closing MQTT connection...");
+      SERIAL_PORT_MONITOR.println("Closing MQTT connection...");
       mqttClient.stop();
-      SerialUSB.println("Disconnecting from cellular network...");
+      SERIAL_PORT_MONITOR.println("Disconnecting from cellular network...");
       nbAccess.shutdown();
-      SerialUSB.println("Offline.");
+      SERIAL_PORT_MONITOR.println("Offline.");
       break;
   }
 }
 
 void publishMessage(const char* topic, const char* _buffer) {
-  SerialUSB.print("Publishing message on topic '");
+  SERIAL_PORT_MONITOR.print("Publishing message on topic '");
   mqttClient.beginMessage(topic);
   mqttClient.print(_buffer);
   mqttClient.endMessage();
-  SerialUSB.print(topic);
-  SerialUSB.println("':");
-  SerialUSB.println(_buffer);
+  SERIAL_PORT_MONITOR.print(topic);
+  SERIAL_PORT_MONITOR.println("':");
+  SERIAL_PORT_MONITOR.println(_buffer);
 }
   
 void onMessageReceived(int messageSize) {
   String topic = mqttClient.messageTopic();
-  SerialUSB.print("Received a message with topic '");
-  SerialUSB.print(topic);
-  SerialUSB.println("':");
+  SERIAL_PORT_MONITOR.print("Received a message with topic '");
+  SERIAL_PORT_MONITOR.print(topic);
+  SERIAL_PORT_MONITOR.println("':");
 
   char _buffer[300];
   
@@ -376,7 +376,7 @@ void onMessageReceived(int messageSize) {
   while (mqttClient.available())
     _buffer[i++] = (char)mqttClient.read();
   _buffer[i]=0;
-  SerialUSB.println(_buffer);
+  SERIAL_PORT_MONITOR.println(_buffer);
   
   payload.clear();
   deserializeJson(payload, _buffer);

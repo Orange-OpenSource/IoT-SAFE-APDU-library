@@ -105,16 +105,16 @@ size_t IoTSAFE::sign(const uint8_t *pKeyID, uint8_t nKeyIDLength,
  
   switch((pHF->desc >> BR_HASHDESC_ID_OFF) & BR_HASHDESC_ID_MASK) {
     case 0:
-      SerialUSB.println("IoT SAFE does not support none as an hash algorithm");
+      SERIAL_PORT_MONITOR.println("IoT SAFE does not support none as an hash algorithm");
       return -1;
    case 1:
-      SerialUSB.println("IoT SAFE does not support the unsecure md5 hash algorithm");
+      SERIAL_PORT_MONITOR.println("IoT SAFE does not support the unsecure md5 hash algorithm");
       return -1;
     case 2:
-      SerialUSB.println("IoT SAFE does not support the unsecure sha1 hash algorithm");
+      SERIAL_PORT_MONITOR.println("IoT SAFE does not support the unsecure sha1 hash algorithm");
       return -1;
     case 3:
-      SerialUSB.println("IoT SAFE does not support sha224 hash algorithm");
+      SERIAL_PORT_MONITOR.println("IoT SAFE does not support sha224 hash algorithm");
       return -1;
     case 4:
       IoTSAFEHash = IOT_SAFE_HASH_SHA_256;
@@ -126,7 +126,7 @@ size_t IoTSAFE::sign(const uint8_t *pKeyID, uint8_t nKeyIDLength,
       IoTSAFEHash = IOT_SAFE_HASH_SHA_512;
       break;
     default:
-      SerialUSB.println("Unknown hash algorithm");
+      SERIAL_PORT_MONITOR.println("Unknown hash algorithm");
       return -1;
   }
 
