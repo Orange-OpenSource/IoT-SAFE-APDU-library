@@ -135,7 +135,7 @@ void connectMQTT() {
     // - a new key pair must be generated,
     // - the CSR must be send through OTA
     // - the certificate must be send back by OTA
-    SerialUSB.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+    SerialUSB.println("Waiting 10 seconds to let time for the IoT SAFE OBKG process");
     delay(10000);
     client_certificate =
       iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,

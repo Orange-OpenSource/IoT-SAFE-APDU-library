@@ -312,7 +312,7 @@ void connectionManager(bool _way = 1) {
         SerialUSB.print(".");
 #endif
 
-      SerialUSB.println("\nYou're connected to the network");
+      SerialUSB.println("You're connected to the network");
       
       SerialUSB.print("Connecting to MQTT broker '");
       SerialUSB.print(mqtt_broker);
@@ -323,7 +323,7 @@ void connectionManager(bool _way = 1) {
         // - a new key pair must be generated,
         // - the CSR must be send through OTA
         // - the certificate must be send back by OTA
-        SerialUSB.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+        SerialUSB.println("Waiting 10 seconds to let time for the IoT SAFE OBKG process");
         delay(10000);
         client_certificate =
           iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
@@ -336,7 +336,7 @@ void connectionManager(bool _way = 1) {
           break;
       }
       
-      SerialUSB.println("\nYou're connected to the MQTT broker");
+      SerialUSB.println("You're connected to the MQTT broker");
       SerialUSB.println();
 
       mqttClient.subscribe(mqtt_subcfg);
@@ -345,11 +345,11 @@ void connectionManager(bool _way = 1) {
       break;
 
     case 0:
-      SerialUSB.println("\nClosing MQTT connection...");
+      SerialUSB.println("Closing MQTT connection...");
       mqttClient.stop();
       SerialUSB.println("Disconnecting from cellular network...");
       nbAccess.shutdown();
-      SerialUSB.println("Offline.\n");
+      SerialUSB.println("Offline.");
       break;
   }
 }
