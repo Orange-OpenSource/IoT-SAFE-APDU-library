@@ -71,23 +71,6 @@ void setup() {
   // used to validate the servers certificate
   ArduinoBearSSL.onGetTime(getTime);
 
-  // Wait a little before sending command to applet as we're getting strange
-  // behavior otherwise (i.e. an empty file is returned)
-  delay(2000);
-
-  client_certificate =
-    iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
-      sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
-
-  root_ca_certificate =
-    iotSAFE.readCertificate(IOT_SAFE_CA_CERTIFICATE_FILE_ID,
-      sizeof(IOT_SAFE_CA_CERTIFICATE_FILE_ID));
-
-  br_x509_certificate br_chain[2];
-  br_chain[0] = client_certificate.getCertificate();
-  br_chain[1] = root_ca_certificate.getCertificate();
-  sslClient.setEccChain(br_chain, 2);
-
   sslClient.setEccSign(iot_safe_sign);
 
   // Optional, set the client id used for MQTT,
@@ -147,11 +130,30 @@ void connectMQTT() {
   Serial.print(broker);
   Serial.println(" ");
 
-  while (!mqttClient.connect(broker, 8883)) {
-    // failed, retry
-    Serial.print(".");
-    Serial.println(mqttClient.connectError());
-    delay(5000);
+  while (true) {
+    // OBKG process can be triggered by OTA and can take some time on the applet as:
+    // - a new key pair must be generated,
+    // - the CSR must be send through OTA
+    // - the certificate must be send back by OTA
+    Serial.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+    delay(10000);
+    client_certificate =
+      iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
+        sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
+
+    root_ca_certificate =
+      iotSAFE.readCertificate(IOT_SAFE_CA_CERTIFICATE_FILE_ID,
+        sizeof(IOT_SAFE_CA_CERTIFICATE_FILE_ID));
+
+    br_x509_certificate br_chain[2];
+    br_chain[0] = client_certificate.getCertificate();
+    br_chain[1] = root_ca_certificate.getCertificate();
+    sslClient.setEccChain(br_chain, 2);
+    if (!mqttClient.connect(broker, 8883)) {
+      Serial.println("Unable to connect, retry in 10 seconds");
+      Serial.println(mqttClient.connectError());
+    } else
+      break;
   }
   Serial.println();
 

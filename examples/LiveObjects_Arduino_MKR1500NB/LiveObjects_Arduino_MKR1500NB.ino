@@ -269,17 +269,7 @@ void setup() {
   // used to validate the servers certificate
   ArduinoBearSSL.onGetTime(getTime);
 
-  // Wait a little before sending command to applet as we're getting strange
-  // behavior otherwise (i.e. an empty file is returned)
-  delay(2000);
-
-  client_certificate =
-    iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
-      sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
-  sslClient.setEccCert(client_certificate.getCertificate());
   sslClient.setEccSign(iot_safe_sign);
-
-  mqttClient.setId(client_certificate.getCertificateCommonName());
   mqttClient.setUsernamePassword(mqtt_user, mqtt_pass);
   mqttClient.onMessage(onMessageReceived);
 
@@ -328,8 +318,23 @@ void connectionManager(bool _way = 1) {
       Serial.print(mqtt_broker);
       Serial.print("'");
       
-      while (!mqttClient.connect(mqtt_broker, mqtt_port))
-        Serial.print(".");
+      while (true) {
+        // OBKG process can be triggered by OTA and can take some time on the applet as:
+        // - a new key pair must be generated,
+        // - the CSR must be send through OTA
+        // - the certificate must be send back by OTA
+        Serial.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+        delay(10000);
+        client_certificate =
+          iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
+          sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
+        sslClient.setEccCert(client_certificate.getCertificate());
+        mqttClient.setId(client_certificate.getCertificateCommonName());
+        if (!mqttClient.connect(mqtt_broker, mqtt_port))
+          Serial.println("Unable to connect, retry in 10 seconds");
+        else
+          break;
+      }
       
       Serial.println("\nYou're connected to the MQTT broker");
       Serial.println();

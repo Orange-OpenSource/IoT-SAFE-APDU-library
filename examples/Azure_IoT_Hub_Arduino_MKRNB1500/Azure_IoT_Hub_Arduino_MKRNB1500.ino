@@ -69,30 +69,6 @@ void setup() {
   // used to validate the servers certificate
   ArduinoBearSSL.onGetTime(getTime);
 
-  // Wait a little before sending command to applet as we're getting strange
-  // behavior otherwise (i.e. an empty file is returned)
-  delay(2000);
-
-  client_certificate =
-    iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
-      sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
-  sslClient.setEccCert(client_certificate.getCertificate());
-  sslClient.setEccSign(iot_safe_sign);
-  deviceId = client_certificate.getCertificateCommonName();
-
-  // Set the client id used for MQTT as the device id
-  mqttClient.setId(deviceId);
-
-  // Set the username to "<broker>/<device id>/?api-version=2018-06-30" and empty password
-  String username;
-
-  username += broker;
-  username += "/";
-  username += deviceId;
-  username += "/?api-version=2018-06-30";
-
-  mqttClient.setUsernamePassword(username, "");
-
   // Set the message callback, this function is
   // called when the MQTTClient receives a message
   mqttClient.onMessage(onMessageReceived);
@@ -143,11 +119,38 @@ void connectMQTT() {
   Serial.print(broker);
   Serial.println(" ");
 
-  while (!mqttClient.connect(broker, 8883)) {
-    // failed, retry
-    Serial.print(".");
-    Serial.println(mqttClient.connectError());
-    delay(5000);
+  while (true) {
+    // OBKG process can be triggered by OTA and can take some time on the applet as:
+    // - a new key pair must be generated,
+    // - the CSR must be send through OTA
+    // - the certificate must be send back by OTA
+    Serial.println("\nWaiting 10 seconds to let time for the IoT SAFE OBKG process");
+    delay(10000);
+    client_certificate =
+      iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
+        sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
+    sslClient.setEccCert(client_certificate.getCertificate());
+    sslClient.setEccSign(iot_safe_sign);
+    deviceId = client_certificate.getCertificateCommonName();
+
+    // Set the client id used for MQTT as the device id
+    mqttClient.setId(deviceId);
+
+    // Set the username to "<broker>/<device id>/?api-version=2018-06-30" and empty password
+    String username;
+
+    username += broker;
+    username += "/";
+    username += deviceId;
+    username += "/?api-version=2018-06-30";
+
+    mqttClient.setUsernamePassword(username, "");
+
+    if (!mqttClient.connect(broker, 8883)) {
+      Serial.println("Unable to connect, retry in 10 seconds");
+      Serial.println(mqttClient.connectError());
+    } else
+      break;
   }
   Serial.println();
 
