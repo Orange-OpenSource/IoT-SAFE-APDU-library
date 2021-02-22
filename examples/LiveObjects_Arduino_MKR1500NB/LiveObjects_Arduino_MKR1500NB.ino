@@ -316,7 +316,7 @@ void connectionManager(bool _way = 1) {
       
       SERIAL_PORT_MONITOR.print("Connecting to MQTT broker '");
       SERIAL_PORT_MONITOR.print(mqtt_broker);
-      SERIAL_PORT_MONITOR.print("'");
+      SERIAL_PORT_MONITOR.println("'");
       
       while (true) {
         // OBKG process can be triggered by OTA and can take some time on the applet as:
