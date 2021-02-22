@@ -16,6 +16,7 @@
 #include <Arduino.h>
 #include <MKRNB.h>
 
+#include <stdarg.h>
 #include <stdio.h>
 
 #include "iot_safe_arduino_internal.h"
