@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#if !defined(ARDUINO_ARCH_SAMD)
+#if !defined(ARDUINO)
 
 // From libpcsclite-dev
 #include <winscard.h>

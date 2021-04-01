@@ -11,10 +11,16 @@
  * @brief IoT SAFE arduino internal functions.
  */
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO)
 
 #include <Arduino.h>
+#if defined(ARDUINO_SAMD_MKRNB1500)
 #include <MKRNB.h>
+#else
+#define TINY_GSM_MODEM_SEQUANS_MONARCH
+#include <TinyGsmClient.h>
+extern TinyGsm modem;
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -59,37 +65,61 @@ iot_safe_error_t iot_safe_arduino_sendAT(const char *at, uint8_t *response,
   uint16_t response_size, uint16_t *response_length)
 {
   iot_safe_error_t error_code = IOT_SAFE_ERROR_UNKNOWN;
+  String raw_response;
   String string_response;
   uint16_t string_response_length = 0;
   char byte[3];
   int posData = 0;
+  // By default, consider that CSIM answer doesn't have quote
+  uint8_t quote = 0;
+  uint8_t csim_start = 0;
 
+#if defined(ARDUINO_SAMD_MKRNB1500)
+  quote = 1;
   MODEM.sendf("AT+CSIM=%d,\"%s\"", strlen(at), at);
+#else
+  modem.sendAT("+CSIM=", strlen(at), ",\"", at, "\"");
+#endif
   delay(100);
-  if (MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &string_response) == 1)
+#if defined(ARDUINO_SAMD_MKRNB1500)
+  if (MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &raw_response) == 1)
   {
-    if (!string_response.startsWith("+CSIM: "))
+    if (!raw_response.startsWith("+CSIM: "))
     {
       IOT_SAFE_DEBUG("Response does not start with +CSIM: (try again)\n");
       // Try again (Arduino MKR NB 1500 modem seems to have a bug)
-      MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &string_response);
-      /*if ((MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &string_response) != 1) ||
-        !string_response.startsWith("+CSIM: "))*/
+      MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &raw_response);
+      /*if ((MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &raw_response) != 1) ||
+        !raw_response.startsWith("+CSIM: "))*/
         //return IOT_SAFE_ERROR_UNKNOWN;
     }
+#else
+  if (modem.waitResponse(IOT_SAFE_AT_TIMER, raw_response) == 1)
+  {
+#endif
+    raw_response.replace("\r\nOK\r\n", "");
+    raw_response.replace("\rOK\r", "");
+    raw_response.replace("\r\n", "");
+    raw_response.replace("\r", "");
+    raw_response.trim();
+
+    // Sequans seems to concatenate previous answers ...
+    csim_start = raw_response.indexOf("+CSIM: ");
+    string_response = raw_response.substring(csim_start);
 
     posData = string_response.indexOf(",");
     string_response_length = string_response.substring(7, posData).toInt();
 
-    string_response.substring(string_response.length()-5,
-      string_response.length()-3).toCharArray(byte, sizeof(byte));
+    string_response.substring(string_response.length()-4-quote,
+      string_response.length()-2-quote).toCharArray(byte, sizeof(byte));
     error_code = strtoul(byte, 0, 16) << 8;
 
-    string_response.substring(string_response.length()-3,
-      string_response.length()-1).toCharArray(byte, sizeof(byte));
+    string_response.substring(string_response.length()-2-quote,
+      string_response.length()-quote).toCharArray(byte, sizeof(byte));
     error_code |= strtoul(byte, 0, 16);
 
-    posData = posData + 2;
+    posData = posData + 1 + quote;
+
     // Extract data if requested
     if (response_size > 0)
     {
@@ -97,7 +127,7 @@ iot_safe_error_t iot_safe_arduino_sendAT(const char *at, uint8_t *response,
       for (size_t count = 0; count < response_size; count++) {
 
         // Error code has already been parsed
-        if (posData >= string_response.length()-5)
+        if (posData >= string_response.length()-4-quote)
           break;
 
         string_response.substring(posData, posData+2).toCharArray(byte,

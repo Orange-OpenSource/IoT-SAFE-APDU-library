@@ -20,7 +20,7 @@ extern "C" {
 
 #include "iot_safe.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO)
 
 /**
  * \brief                    Printf implementation for Arduino.

@@ -45,7 +45,7 @@ iot_safe_error_t iot_safe_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
     snprintf(at, sizeof(at), "%02X%02X%02X%02X%02X", cla, ins, p1, p2, lc);
 
   IOT_SAFE_DEBUG("iot_safe_sendAPDU: %s\n", at);
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO)
   return iot_safe_arduino_sendAT(at, response, response_size, response_length);
 #else
   return iot_safe_pcsc_sendAPDU(cla, ins, p1, p2, lc, command, le, with_le,

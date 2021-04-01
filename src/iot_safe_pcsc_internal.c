@@ -11,7 +11,7 @@
  * @brief  IoT SAFE PCSC internal functions
  */
 
-#if !defined(ARDUINO_ARCH_SAMD)
+#if !defined(ARDUINO)
 
 #include "iot_safe_pcsc_internal.h"
 #include "iot_safe_internal.h"

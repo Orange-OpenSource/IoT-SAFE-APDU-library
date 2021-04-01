@@ -19,7 +19,7 @@
 
 #include "iot_safe.h"
 
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO)
 #include "iot_safe_arduino_internal.h"
 #else
 #include "iot_safe_pcsc_internal.h"
@@ -29,7 +29,7 @@
 
 //#define IOT_SAFE_ENABLE_DEBUG
 #if defined(IOT_SAFE_ENABLE_DEBUG)
-#if defined(ARDUINO_ARCH_SAMD)
+#if defined(ARDUINO)
 #define IOT_SAFE_DEBUG iot_safe_arduino_printf
 #else
 #define IOT_SAFE_DEBUG printf

@@ -27,12 +27,15 @@ flag.
 
 This library has been tested with applets from two different manufacturers on:
  * Arduino MKR NB 1500
+ * STM32 Nucleo-WB55 with Orange Live Booster (Sequans Monarch GMS01Q)
+ * Orange LoRa Explorer with Orange Live Booster (Sequans Monarch GMS01Q)
  * Linux (RPi)
 
 ### Arduino MKR NB 1500
 
-On Arduino, this library forwards the IoT SAFE commands from the Rich OS to the
-applet thanks to AT CSIM commands (which must be supported by the modem).
+On Arduino MKR NB 1500, this library forwards the IoT SAFE commands from the
+Rich OS to the applet thanks to AT CSIM commands (which must be supported by
+the modem).
 
 Four examples are available:
  * a basic example (without any network connection)
@@ -55,6 +58,25 @@ The AWS IoT Core Arduino MKR NB 1500 sample has been tested over cellular
 connectivity. This example depends on the master branch of ArduinoBearSSL
 to be able to provide the client certificate chain for Just-in-time
 provisioning (until version 1.7.0 is released).
+
+### Arduino with [Orange Live Booster (Sequans Monarch GMS01Q)](https://blog.liveobjects.orange-business.com/gms01q-stmod)
+
+On "standard" Arduino (e.g. STM32 Nucleo-WB55 or Orange LoRa Explorer), this
+library forwards the IoT SAFE commands from the Rich OS to the applet thanks to
+AT CSIM commands (which must be supported by the modem). To manage the Sequans
+Monarch GMS01Q modem, this library uses
+[TinyGSM](https://github.com/vshymanskyy/TinyGSM) which is licensed under
+LGPL-3.0.
+
+The Arduino with Orange Live Booster sample has been tested over cellular
+connectivity. This sample also depends on
+[Time](https://github.com/PaulStoffregen/Time) which is licensed under
+LGPL-2.1.
+
+This sample has been tested with two different Arduinos:
+ * STM32 Nucleo-WB55 running
+[Arduino_Core_STM32](https://github.com/stm32duino/Arduino_Core_STM32)
+ * [Orange LoRa Explorer](https://market.datavenue.orange-business.com/sodaq-orange-lorar-explorer-8719324913065-868-mhz.html)
 
 ### Linux and PCSC lite
 
