@@ -44,7 +44,7 @@ iot_safe_error_t iot_safe_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
   else if (with_le == 0 && lc == 0)
     snprintf(at, sizeof(at), "%02X%02X%02X%02X%02X", cla, ins, p1, p2, lc);
 
-  IOT_SAFE_DEBUG("iot_safe_sendAPDU: %s\n", at);
+  IOT_SAFE_DEBUG("iot_safe_sendAPDU: %s\r\n", at);
 #if defined(ARDUINO)
   return iot_safe_arduino_sendAT(at, response, response_size, response_length);
 #else
@@ -100,7 +100,7 @@ iot_safe_error_t iot_safe_extract_tlv(uint8_t *response, uint8_t position,
   {
     if (mandatory)
     {
-      IOT_SAFE_DEBUG("Wrong tag: %02X (received) != %02X (expected)\n",
+      IOT_SAFE_DEBUG("Wrong tag: %02X (received) != %02X (expected)\r\n",
         response[position], tag);
         return IOT_SAFE_ERROR_UNKNOWN;
     }
@@ -112,7 +112,7 @@ iot_safe_error_t iot_safe_extract_tlv(uint8_t *response, uint8_t position,
 
   if (expected_length && received_length != expected_length)
   {
-    IOT_SAFE_DEBUG("Wrong length: %02X (received) != %02X (expected)\n",
+    IOT_SAFE_DEBUG("Wrong length: %02X (received) != %02X (expected)\r\n",
       received_length, expected_length);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
@@ -127,7 +127,7 @@ iot_safe_error_t iot_safe_extract_tlv(uint8_t *response, uint8_t position,
     {
       if (received_length > value_size)
       {
-        IOT_SAFE_DEBUG("Length is greater than value size: %02X (received) > %02X (value size)\n",
+        IOT_SAFE_DEBUG("Length is greater than value size: %02X (received) > %02X (value size)\r\n",
           received_length, value_size);
           return IOT_SAFE_ERROR_UNKNOWN;
       }
@@ -410,13 +410,13 @@ iot_safe_error_t iot_safe_compute_signature_init(uint8_t channel,
   uint8_t command[command_size];
   uint16_t response_length = 0;
 
-  IOT_SAFE_DEBUG("Enter iot_safe_compute_signature_init\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_compute_signature_init\r\n");
 
   memset(&command, 0, sizeof(command));
 
   if (key_id_length && key_label_length)
   {
-    IOT_SAFE_DEBUG("ID and label can't be set at the same time\n");
+    IOT_SAFE_DEBUG("ID and label can't be set at the same time\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -437,12 +437,12 @@ iot_safe_error_t iot_safe_compute_signature_init(uint8_t channel,
   position = iot_safe_add_tlv_byte(command, position, IOT_SAFE_TAG_SIGNATURE,
     signature_algorithm);
 
-  IOT_SAFE_DEBUG("Try to close the session (in case previous one is open)\n");
+  IOT_SAFE_DEBUG("Try to close the session (in case previous one is open)\r\n");
   iot_safe_sendAPDU(channel, IOT_SAFE_INS_COMPUTE_SIGNATURE_INIT,
     IOT_SAFE_SESSION_CLOSE, session_number, 0, NULL, 0x00, 0, NULL, 0,
     &response_length);
 
-  IOT_SAFE_DEBUG("Send iot_safe_compute_signature_init\n");
+  IOT_SAFE_DEBUG("Send iot_safe_compute_signature_init\r\n");
   ret = iot_safe_sendAPDU(channel, IOT_SAFE_INS_COMPUTE_SIGNATURE_INIT,
     IOT_SAFE_SESSION_OPEN, session_number, sizeof(command), command, 0x00, 0,
     NULL, 0, &response_length);
@@ -462,13 +462,13 @@ iot_safe_error_t iot_safe_verify_signature_init(uint8_t channel,
   uint8_t command[command_size];
   uint16_t response_length = 0;
 
-  IOT_SAFE_DEBUG("Enter iot_safe_verify_signature_init\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_verify_signature_init\r\n");
 
   memset(&command, 0, sizeof(command));
 
   if (key_id_length && key_label_length)
   {
-    IOT_SAFE_DEBUG("ID and label can't be set at the same time\n");
+    IOT_SAFE_DEBUG("ID and label can't be set at the same time\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -489,12 +489,12 @@ iot_safe_error_t iot_safe_verify_signature_init(uint8_t channel,
   position = iot_safe_add_tlv_byte(command, position, IOT_SAFE_TAG_SIGNATURE,
     signature_algorithm);
 
-  IOT_SAFE_DEBUG("Try to close the session (in case previous one is open)\n");
+  IOT_SAFE_DEBUG("Try to close the session (in case previous one is open)\r\n");
   iot_safe_sendAPDU(channel, IOT_SAFE_INS_VERIFY_SIGNATURE_INIT,
     IOT_SAFE_SESSION_CLOSE, session_number, 0, NULL, 0x00, 0, NULL, 0,
     &response_length);
 
-  IOT_SAFE_DEBUG("Send iot_safe_verify_signature_init\n");
+  IOT_SAFE_DEBUG("Send iot_safe_verify_signature_init\r\n");
   ret = iot_safe_sendAPDU(channel, IOT_SAFE_INS_VERIFY_SIGNATURE_INIT,
     IOT_SAFE_SESSION_OPEN, session_number, sizeof(command), command, 0x00, 0,
     NULL, 0, &response_length);
@@ -512,7 +512,7 @@ iot_safe_error_t iot_safe_convert_asn1_to_raw(uint8_t *signature_asn1,
   uint8_t s_length = 0;
 
   if (signature_asn1[position] != 0x30) {
-    IOT_SAFE_DEBUG("Unknown ASN.1 DER format (received: %02X, expected: 0x30)\n",
+    IOT_SAFE_DEBUG("Unknown ASN.1 DER format (received: %02X, expected: 0x30)\r\n",
       signature_asn1[position]);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
@@ -521,14 +521,14 @@ iot_safe_error_t iot_safe_convert_asn1_to_raw(uint8_t *signature_asn1,
   position = position + 2;
 
   if (signature_asn1[position] != 0x02) {
-    IOT_SAFE_DEBUG("Unknown ASN.1 DER format (received: %02X, expected: 0x02)\n",
+    IOT_SAFE_DEBUG("Unknown ASN.1 DER format (received: %02X, expected: 0x02)\r\n",
       signature_asn1[position]);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   r_length = signature_asn1[++position];
   if (r_length > signature_size) {
-    IOT_SAFE_DEBUG("r is bigger than buffer: %d > %d\n", r_length,
+    IOT_SAFE_DEBUG("r is bigger than buffer: %d > %d\r\n", r_length,
       signature_size);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
@@ -545,14 +545,14 @@ iot_safe_error_t iot_safe_convert_asn1_to_raw(uint8_t *signature_asn1,
   position = position + r_length;
 
   if (signature_asn1[position] != 0x02) {
-    IOT_SAFE_DEBUG("Unknown ASN.1 DER format (received: %02X, expected: 0x02)\n",
+    IOT_SAFE_DEBUG("Unknown ASN.1 DER format (received: %02X, expected: 0x02)\r\n",
       signature_asn1[position]);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   s_length = signature_asn1[++position];
   if (s_length > signature_size - r_length) {
-    IOT_SAFE_DEBUG("s is bigger than remaining buffer size: %d > (%d - %d)\n",
+    IOT_SAFE_DEBUG("s is bigger than remaining buffer size: %d > (%d - %d)\r\n",
       s_length, signature_size, r_length);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
@@ -586,7 +586,7 @@ iot_safe_error_t iot_safe_compute_signature_update(uint8_t channel,
   uint8_t signature_asn1[IOT_SAFE_APDU_BUFFER_LEN];
   uint8_t signature_asn1_length = 0;
 
-  IOT_SAFE_DEBUG("Enter iot_safe_compute_signature_update\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_compute_signature_update\r\n");
 
   memset(&command, 0, sizeof(command));
   memset(&response, 0, sizeof(response));
@@ -597,13 +597,13 @@ iot_safe_error_t iot_safe_compute_signature_update(uint8_t channel,
       data_tag = IOT_SAFE_TAG_DATA_TO_BE_SIGNED;
       break;
     case IOT_SAFE_SIGNATURE_OPERATION_MODE_LAST_BLOCK:
-      IOT_SAFE_DEBUG("Last block mode is unsupported\n");
+      IOT_SAFE_DEBUG("Last block mode is unsupported\r\n");
       return IOT_SAFE_ERROR_UNKNOWN;
     case IOT_SAFE_SIGNATURE_OPERATION_MODE_PAD_AND_SIGN:
       data_tag = IOT_SAFE_TAG_FINAL_HASH;
       break;
     default:
-      IOT_SAFE_DEBUG("Unsupported operation_mode: %d\n", operation_mode);
+      IOT_SAFE_DEBUG("Unsupported operation_mode: %d\r\n", operation_mode);
       return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -636,7 +636,7 @@ iot_safe_error_t iot_safe_compute_signature_update(uint8_t channel,
   memcpy(signature, signature_asn1, signature_asn1_length);
   *signature_length = signature_asn1_length;
 
-  IOT_SAFE_DEBUG("Close the session\n");
+  IOT_SAFE_DEBUG("Close the session\r\n");
   iot_safe_sendAPDU(channel, IOT_SAFE_INS_COMPUTE_SIGNATURE_INIT,
     IOT_SAFE_SESSION_CLOSE, session_number, 0, NULL, 0x00, 0, NULL, 0,
     &response_length);
@@ -656,7 +656,7 @@ iot_safe_error_t iot_safe_verify_signature_update(uint8_t channel,
   uint8_t data_tag = IOT_SAFE_TAG_FINAL_HASH;
   uint16_t response_length = 0;
 
-  IOT_SAFE_DEBUG("Enter iot_safe_verify_signature_update\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_verify_signature_update\r\n");
 
   memset(&command, 0, sizeof(command));
 
@@ -665,13 +665,13 @@ iot_safe_error_t iot_safe_verify_signature_update(uint8_t channel,
       data_tag = IOT_SAFE_TAG_DATA_TO_BE_SIGNED;
       break;
     case IOT_SAFE_SIGNATURE_OPERATION_MODE_LAST_BLOCK:
-      IOT_SAFE_DEBUG("Last block mode is unsupported\n");
+      IOT_SAFE_DEBUG("Last block mode is unsupported\r\n");
       return IOT_SAFE_ERROR_UNKNOWN;
     case IOT_SAFE_SIGNATURE_OPERATION_MODE_PAD_AND_SIGN:
       data_tag = IOT_SAFE_TAG_FINAL_HASH;
       break;
     default:
-      IOT_SAFE_DEBUG("Unsupported operation_mode: %d\n", operation_mode);
+      IOT_SAFE_DEBUG("Unsupported operation_mode: %d\r\n", operation_mode);
       return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -685,7 +685,7 @@ iot_safe_error_t iot_safe_verify_signature_update(uint8_t channel,
     0x80, session_number, sizeof(command), command, 0x00, 0, NULL, 0,
     &response_length);
 
-  IOT_SAFE_DEBUG("Close the session\n");
+  IOT_SAFE_DEBUG("Close the session\r\n");
   iot_safe_sendAPDU(channel, IOT_SAFE_INS_VERIFY_SIGNATURE_INIT,
     IOT_SAFE_SESSION_CLOSE, session_number, 0, NULL, 0x00, 0, NULL, 0,
     &response_length);

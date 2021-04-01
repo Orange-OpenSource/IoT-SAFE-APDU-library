@@ -86,7 +86,7 @@ iot_safe_error_t iot_safe_arduino_sendAT(const char *at, uint8_t *response,
   {
     if (!raw_response.startsWith("+CSIM: "))
     {
-      IOT_SAFE_DEBUG("Response does not start with +CSIM: (try again)\n");
+      IOT_SAFE_DEBUG("Response does not start with +CSIM: (try again)\r\n");
       // Try again (Arduino MKR NB 1500 modem seems to have a bug)
       MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &raw_response);
       /*if ((MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &raw_response) != 1) ||
@@ -137,11 +137,11 @@ iot_safe_error_t iot_safe_arduino_sendAT(const char *at, uint8_t *response,
         posData += 2;
         *response_length++;
       }
-      IOT_SAFE_DEBUG("\n");
+      IOT_SAFE_DEBUG("\r\n");
     }
   } else
   {
-    IOT_SAFE_DEBUG("No response\n");
+    IOT_SAFE_DEBUG("No response\r\n");
   }
   return error_code;
 }

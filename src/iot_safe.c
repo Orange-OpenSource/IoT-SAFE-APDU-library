@@ -23,17 +23,17 @@ iot_safe_error_t iot_safe_init(const uint8_t *aid, uint8_t aid_length,
   uint8_t response[IOT_SAFE_APDU_BUFFER_LEN];
   uint16_t response_length = 0;
 
-  IOT_SAFE_DEBUG("Enter iot_safe_init\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_init\r\n");
 
   if (!aid_length && aid == NULL)
   {
-    IOT_SAFE_DEBUG("AID must be set\n");
+    IOT_SAFE_DEBUG("AID must be set\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   memset(&response, 0, sizeof(response));
 
-  IOT_SAFE_DEBUG("Open channel\n");
+  IOT_SAFE_DEBUG("Open channel\r\n");
   ret = iot_safe_sendAPDU(0x00, 0x70, 0x00, 0x00, 0, NULL, 0x01, 1, response,
     sizeof(response), &response_length);
 
@@ -42,7 +42,7 @@ iot_safe_error_t iot_safe_init(const uint8_t *aid, uint8_t aid_length,
 
   *channel = response[0];
 
-  IOT_SAFE_DEBUG("Select IoT SAFE applet\n");
+  IOT_SAFE_DEBUG("Select IoT SAFE applet\r\n");
   return iot_safe_sendAPDU(*channel, 0xA4, 0x04, 0x00, aid_length, aid, 0x00,
     0, NULL, 0, &response_length);
 }
@@ -50,9 +50,9 @@ iot_safe_error_t iot_safe_init(const uint8_t *aid, uint8_t aid_length,
 iot_safe_error_t iot_safe_finish(uint8_t channel)
 {
   uint16_t response_length = 0;
-  IOT_SAFE_DEBUG("Enter iot_safe_finish\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_finish\r\n");
 
-  IOT_SAFE_DEBUG("Close channel\n");
+  IOT_SAFE_DEBUG("Close channel\r\n");
   return iot_safe_sendAPDU(0x00, 0x70, 0x80, channel, 0, NULL, 0x00, 0, NULL,
     0, &response_length);
 }
@@ -74,29 +74,29 @@ iot_safe_error_t iot_safe_compute_dh(uint8_t channel,
   memset(&command, 0, sizeof(command));
   memset(&response, 0, sizeof(response));
 
-  IOT_SAFE_DEBUG("Enter iot_safe_compute_dh\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_compute_dh\r\n");
 
   if (!private_key_id_length && !private_key_label_length)
   {
-    IOT_SAFE_DEBUG("Private ID or label must be set\n");
+    IOT_SAFE_DEBUG("Private ID or label must be set\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   if (!public_key_id_length && !public_key_label_length)
   {
-    IOT_SAFE_DEBUG("Public ID or label must be set\n");
+    IOT_SAFE_DEBUG("Public ID or label must be set\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   if (private_key_id_length && private_key_label_length)
   {
-    IOT_SAFE_DEBUG("Private ID and label can't be set at the same time\n");
+    IOT_SAFE_DEBUG("Private ID and label can't be set at the same time\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   if (public_key_id_length && public_key_label_length)
   {
-    IOT_SAFE_DEBUG("Public ID and label can't be set at the same time\n");
+    IOT_SAFE_DEBUG("Public ID and label can't be set at the same time\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -131,7 +131,7 @@ iot_safe_error_t iot_safe_get_application(uint8_t channel,
   uint8_t position = 0;
   uint8_t received_length = 0;
 
-  IOT_SAFE_DEBUG("Enter iot_safe_get_application\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_get_application\r\n");
 
   memset(&response, 0, sizeof(response));
 
@@ -252,7 +252,7 @@ iot_safe_error_t iot_safe_get_object_list(uint8_t channel,
   uint16_t response_length = 0;
   uint8_t number = 0;
   uint8_t position = 0;
-  IOT_SAFE_DEBUG("Enter iot_safe_get_object_list\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_get_object_list\r\n");
 
   memset(&response, 0, sizeof(response));
 
@@ -349,17 +349,17 @@ iot_safe_error_t iot_safe_get_private_key_information(uint8_t channel,
   memset(&command, 0, sizeof(command));
   memset(&response, 0, sizeof(response));
 
-  IOT_SAFE_DEBUG("Enter iot_safe_get_private_key_information\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_get_private_key_information\r\n");
 
   if (!id_length && !label_length)
   {
-    IOT_SAFE_DEBUG("ID or label must be set\n");
+    IOT_SAFE_DEBUG("ID or label must be set\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   if (id_length && label_length)
   {
-    IOT_SAFE_DEBUG("ID and label can't be set at the same time\n");
+    IOT_SAFE_DEBUG("ID and label can't be set at the same time\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -396,7 +396,7 @@ iot_safe_error_t iot_safe_sign(uint8_t channel,
   uint16_t signature_size, uint16_t *signature_length)
 {
   iot_safe_error_t ret = IOT_SAFE_ERROR_UNKNOWN;
-  IOT_SAFE_DEBUG("Enter iot_safe_sign\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_sign\r\n");
 
   ret = iot_safe_compute_signature_init(channel, IOT_SAFE_SESSION_NUMBER,
     key_id, key_id_length, key_label, key_label_length, operation_mode,
@@ -419,7 +419,7 @@ iot_safe_error_t iot_safe_verify(uint8_t channel,
   uint16_t signature_length)
 {
   iot_safe_error_t ret = IOT_SAFE_ERROR_UNKNOWN;
-  IOT_SAFE_DEBUG("Enter iot_safe_verify\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_verify\r\n");
 
   ret = iot_safe_verify_signature_init(channel, IOT_SAFE_SESSION_NUMBER, key_id,
     key_id_length, key_label, key_label_length, operation_mode, hash_algorithm,
@@ -436,7 +436,7 @@ iot_safe_error_t iot_safe_get_random(uint8_t channel, uint8_t *random,
   uint16_t random_size, uint16_t *random_length)
 {
   iot_safe_error_t ret = IOT_SAFE_ERROR_UNKNOWN;
-  IOT_SAFE_DEBUG("Enter iot_safe_get_random random_size=%d\n", random_size);
+  IOT_SAFE_DEBUG("Enter iot_safe_get_random random_size=%d\r\n", random_size);
 
   ret = iot_safe_sendAPDU(channel, IOT_SAFE_INS_GET_RANDOM, 0x00, 0x00,
     0x00, NULL, random_size, 1, random, random_size, random_length);
@@ -460,17 +460,17 @@ iot_safe_error_t iot_safe_read_file(uint8_t channel, const uint8_t *file_id,
   memset(&command, 0, sizeof(command));
   memset(&response, 0, sizeof(response));
 
-  IOT_SAFE_DEBUG("Enter iot_safe_read_file\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_read_file\r\n");
 
   if (!file_id_length && !file_label_length)
   {
-    IOT_SAFE_DEBUG("File ID or label must be set\n");
+    IOT_SAFE_DEBUG("File ID or label must be set\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   if (file_id_length && file_label_length)
   {
-    IOT_SAFE_DEBUG("File ID and label can't be set at the same time\n");
+    IOT_SAFE_DEBUG("File ID and label can't be set at the same time\r\n");
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -513,7 +513,7 @@ iot_safe_error_t iot_safe_read_file(uint8_t channel, const uint8_t *file_id,
   IOT_SAFE_DEBUG("Exit iot_safe_read_file: ");
   for (int i=0; i<data_length; i++)
     IOT_SAFE_DEBUG("%02X ", data[i]);
-  IOT_SAFE_DEBUG("\n");
+  IOT_SAFE_DEBUG("\r\n");
 
   return ret;
 }
@@ -524,19 +524,19 @@ void iot_safe_print_crypto_functions(
   if (!crypto_functions)
     return;
 
-  IOT_SAFE_DEBUG("  Cryptographic functions:                  %02X\n",
+  IOT_SAFE_DEBUG("  Cryptographic functions:                  %02X\r\n",
     crypto_functions);
   if (crypto_functions & IOT_SAFE_CRYPTO_FUNCTION_SIGNATURE)
-    IOT_SAFE_DEBUG("                                              Signature (generation or verification) (%02X)\n",
+    IOT_SAFE_DEBUG("                                              Signature (generation or verification) (%02X)\r\n",
       IOT_SAFE_CRYPTO_FUNCTION_SIGNATURE);
   if (crypto_functions & IOT_SAFE_CRYPTO_FUNCTION_KEY_GENERATION)
-    IOT_SAFE_DEBUG("                                              Key generation (%02X)\n",
+    IOT_SAFE_DEBUG("                                              Key generation (%02X)\r\n",
       IOT_SAFE_CRYPTO_FUNCTION_KEY_GENERATION);
   if (crypto_functions & IOT_SAFE_CRYPTO_FUNCTION_KEY_AGREEMENT)
-    IOT_SAFE_DEBUG("                                              Key agreement (%02X)\n",
+    IOT_SAFE_DEBUG("                                              Key agreement (%02X)\r\n",
       IOT_SAFE_CRYPTO_FUNCTION_KEY_AGREEMENT);
   if (crypto_functions & IOT_SAFE_CRYPTO_FUNCTION_KEY_DERIVATION)
-    IOT_SAFE_DEBUG("                                              Key derivation (%02X)\n",
+    IOT_SAFE_DEBUG("                                              Key derivation (%02X)\r\n",
       IOT_SAFE_CRYPTO_FUNCTION_KEY_DERIVATION);
 }
 
@@ -545,16 +545,16 @@ void iot_safe_print_algos_for_hash(iot_safe_hash_t algos_for_hash)
   if (!algos_for_hash)
     return;
 
-  IOT_SAFE_DEBUG("  Supported algorithms for hash:            %02X\n",
+  IOT_SAFE_DEBUG("  Supported algorithms for hash:            %02X\r\n",
     algos_for_hash);
   if (algos_for_hash & IOT_SAFE_HASH_SHA_256)
-    IOT_SAFE_DEBUG("                                              SHA-256 (%02X)\n",
+    IOT_SAFE_DEBUG("                                              SHA-256 (%02X)\r\n",
       IOT_SAFE_HASH_SHA_256);
   if (algos_for_hash & IOT_SAFE_HASH_SHA_384)
-    IOT_SAFE_DEBUG("                                              SHA-384 (%02X)\n",
+    IOT_SAFE_DEBUG("                                              SHA-384 (%02X)\r\n",
       IOT_SAFE_HASH_SHA_384);
   if (algos_for_hash & IOT_SAFE_HASH_SHA_512)
-    IOT_SAFE_DEBUG("                                              SHA-512 (%02X)\n",
+    IOT_SAFE_DEBUG("                                              SHA-512 (%02X)\r\n",
       IOT_SAFE_HASH_SHA_512);
 }
 
@@ -564,16 +564,16 @@ void iot_safe_print_algos_for_sign(
   if (!algos_for_sign)
     return;
 
-  IOT_SAFE_DEBUG("  Supported algorithms for signature:       %02X\n",
+  IOT_SAFE_DEBUG("  Supported algorithms for signature:       %02X\r\n",
     algos_for_sign);
   if (algos_for_sign & IOT_SAFE_SIGNATURE_RSA_PKCS)
-    IOT_SAFE_DEBUG("                                              RSA with padding according to RSAPSSA PKCS#1 v1.5 (%02X)\n",
+    IOT_SAFE_DEBUG("                                              RSA with padding according to RSAPSSA PKCS#1 v1.5 (%02X)\r\n",
       IOT_SAFE_SIGNATURE_RSA_PKCS);
   if (algos_for_sign & IOT_SAFE_SIGNATURE_RSA_PSS)
-    IOT_SAFE_DEBUG("                                              RSA with padding according to RSASSA PSS (%02X)\n",
+    IOT_SAFE_DEBUG("                                              RSA with padding according to RSASSA PSS (%02X)\r\n",
       IOT_SAFE_SIGNATURE_RSA_PSS);
   if (algos_for_sign & IOT_SAFE_SIGNATURE_ECDSA)
-    IOT_SAFE_DEBUG("                                              ECDSA (%02X)\n",
+    IOT_SAFE_DEBUG("                                              ECDSA (%02X)\r\n",
       IOT_SAFE_SIGNATURE_ECDSA);
 }
 
@@ -583,10 +583,10 @@ void iot_safe_print_algos_for_key_agreement(
   if (!algos_for_key_agreement)
     return;
 
-  IOT_SAFE_DEBUG("  Supported algorithms for key agreement:   %02X\n",
+  IOT_SAFE_DEBUG("  Supported algorithms for key agreement:   %02X\r\n",
     algos_for_key_agreement);
   if (algos_for_key_agreement & IOT_SAFE_KEY_AGREEMENT_ECKA)
-    IOT_SAFE_DEBUG("                                              ECKA (DL/ECKAS-DH1, IEEE 1363) (%02X)\n",
+    IOT_SAFE_DEBUG("                                              ECKA (DL/ECKAS-DH1, IEEE 1363) (%02X)\r\n",
       IOT_SAFE_KEY_AGREEMENT_ECKA);
 }
 
@@ -596,13 +596,13 @@ void iot_safe_print_algos_for_key_derivation(
   if (!algos_for_key_derivation)
     return;
 
-  IOT_SAFE_DEBUG("  Supported algorithms for key derivation:  %02X\n",
+  IOT_SAFE_DEBUG("  Supported algorithms for key derivation:  %02X\r\n",
     algos_for_key_derivation);
   if (algos_for_key_derivation & IOT_SAFE_KEY_DERIVATION_PRF_SHA256)
-    IOT_SAFE_DEBUG("                                              PRF SHA-256 (rfc5246) (%02X)\n",
+    IOT_SAFE_DEBUG("                                              PRF SHA-256 (rfc5246) (%02X)\r\n",
       IOT_SAFE_KEY_DERIVATION_PRF_SHA256);
   if (algos_for_key_derivation & IOT_SAFE_KEY_DERIVATION_HKDF)
-    IOT_SAFE_DEBUG("                                              HKDF (rfc5869) (%02X)\n",
+    IOT_SAFE_DEBUG("                                              HKDF (rfc5869) (%02X)\r\n",
       IOT_SAFE_KEY_DERIVATION_HKDF);
 }
 
@@ -614,7 +614,7 @@ void iot_safe_print_bytes(uint8_t *value, uint8_t size)
 
   for (i=0; i<size; i++)
     IOT_SAFE_DEBUG("%02X ", value[i]);
-  IOT_SAFE_DEBUG("\n");
+  IOT_SAFE_DEBUG("\r\n");
 }
 
 void iot_safe_print_access_conditions(
@@ -623,12 +623,12 @@ void iot_safe_print_access_conditions(
   if (!access_conditions)
     return;
 
-  IOT_SAFE_DEBUG("  Object Access conditions:                 %02X\n", access_conditions);
+  IOT_SAFE_DEBUG("  Object Access conditions:                 %02X\r\n", access_conditions);
   if (access_conditions & IOT_SAFE_OBJECT_ACCESS_READ)
-    IOT_SAFE_DEBUG("                                              Read (%02X)\n",
+    IOT_SAFE_DEBUG("                                              Read (%02X)\r\n",
       IOT_SAFE_OBJECT_ACCESS_READ);
   if (access_conditions & IOT_SAFE_OBJECT_ACCESS_UPDATE)
-    IOT_SAFE_DEBUG("                                              Update (%02X)\n",
+    IOT_SAFE_DEBUG("                                              Update (%02X)\r\n",
       IOT_SAFE_OBJECT_ACCESS_UPDATE);
 }
 
@@ -649,7 +649,7 @@ void iot_safe_print_state(iot_safe_object_state_t state)
     default:
       IOT_SAFE_DEBUG("RFU");
     }
-    IOT_SAFE_DEBUG("\n");
+    IOT_SAFE_DEBUG("\r\n");
 }
 
 void iot_safe_print_usage(iot_safe_key_usage_t usage)
@@ -672,7 +672,7 @@ void iot_safe_print_usage(iot_safe_key_usage_t usage)
     default:
       IOT_SAFE_DEBUG("RFU");
   }
-  IOT_SAFE_DEBUG("\n");
+  IOT_SAFE_DEBUG("\r\n");
 }
 
 void iot_safe_print_type(iot_safe_object_state_t type) {
@@ -703,40 +703,40 @@ void iot_safe_print_type(iot_safe_object_state_t type) {
     default:
       IOT_SAFE_DEBUG("RFU");
     }
-    IOT_SAFE_DEBUG("\n");
+    IOT_SAFE_DEBUG("\r\n");
 }
 
 void iot_safe_print_application(iot_safe_application_t *application)
 {
-  IOT_SAFE_DEBUG("Enter iot_safe_print_application\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_print_application\r\n");
 
   if (application == NULL)
     return;
 
-  IOT_SAFE_DEBUG("  SIM Alliance version:                     %d\n",
+  IOT_SAFE_DEBUG("  SIM Alliance version:                     %d\r\n",
     application->version);
   IOT_SAFE_DEBUG("  Applet proprietary identifier:            ");
   iot_safe_print_bytes(application->id, sizeof(application->id));
-  IOT_SAFE_DEBUG("  Max number of files:                      %d\n",
+  IOT_SAFE_DEBUG("  Max number of files:                      %d\r\n",
     application->max_files);
-  IOT_SAFE_DEBUG("  Max number of private keys:               %d\n",
+  IOT_SAFE_DEBUG("  Max number of private keys:               %d\r\n",
     application->max_private_keys);
-  IOT_SAFE_DEBUG("  Max number public keys:                   %d\n",
+  IOT_SAFE_DEBUG("  Max number public keys:                   %d\r\n",
     application->max_public_keys);
-  IOT_SAFE_DEBUG("  Max number secret keys:                   %d\n",
+  IOT_SAFE_DEBUG("  Max number secret keys:                   %d\r\n",
     application->max_secrets);
   iot_safe_print_crypto_functions(application->crypto_functions);
   iot_safe_print_algos_for_hash(application->algos_for_hash);
   iot_safe_print_algos_for_sign(application->algos_for_sign);
   iot_safe_print_algos_for_key_agreement(application->algos_for_key_agreement);
   iot_safe_print_algos_for_key_derivation(application->algos_for_key_derivation);
-  IOT_SAFE_DEBUG("  Maximum number of sessions:               %d\n",
+  IOT_SAFE_DEBUG("  Maximum number of sessions:               %d\r\n",
     application->max_sessions);
 }
 
 void iot_safe_print_key(iot_safe_key_t *key, uint8_t key_id_tag)
 {
-  IOT_SAFE_DEBUG("Enter iot_safe_print_key\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_print_key\r\n");
 
   if (key == NULL)
     return;
@@ -775,7 +775,7 @@ void iot_safe_print_public_key(iot_safe_key_t *key)
 
 void iot_safe_print_secret(iot_safe_secret_t *secret)
 {
-  IOT_SAFE_DEBUG("Enter iot_safe_print_secret\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_print_secret\r\n");
 
   if (secret == NULL)
     return;
@@ -799,7 +799,7 @@ void iot_safe_print_secret(iot_safe_secret_t *secret)
 
 void iot_safe_print_file(iot_safe_file_t *file)
 {
-  IOT_SAFE_DEBUG("Enter iot_safe_print_file\n");
+  IOT_SAFE_DEBUG("Enter iot_safe_print_file\r\n");
 
   if (file == NULL)
     return;
@@ -817,7 +817,7 @@ void iot_safe_print_file(iot_safe_file_t *file)
   iot_safe_print_access_conditions(file->access_conditions);
   iot_safe_print_state(file->state);
   iot_safe_print_usage(file->usage);
-  IOT_SAFE_DEBUG("  Size:                               %d\n", file->size);
+  IOT_SAFE_DEBUG("  Size:                               %d\r\n", file->size);
 }
 
 void iot_safe_print_error(iot_safe_error_t error)
@@ -879,7 +879,7 @@ void iot_safe_print_error(iot_safe_error_t error)
     default:
       IOT_SAFE_DEBUG("RFU");
   }
-  IOT_SAFE_DEBUG("\n");
+  IOT_SAFE_DEBUG("\r\n");
 }
 
 void iot_safe_print_tag(uint8_t tag)
@@ -1022,5 +1022,5 @@ void iot_safe_print_tag(uint8_t tag)
     default:
       IOT_SAFE_DEBUG("RFU");
   }
-  IOT_SAFE_DEBUG("\n");
+  IOT_SAFE_DEBUG("\r\n");
 }

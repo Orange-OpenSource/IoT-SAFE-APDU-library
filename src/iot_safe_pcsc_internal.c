@@ -56,7 +56,7 @@ iot_safe_error_t iot_safe_pcsc_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
   rv = SCardEstablishContext(SCARD_SCOPE_SYSTEM, NULL, NULL, &hContext);
   if (rv)
   {
-    IOT_SAFE_DEBUG("SCardEstablishContext failed: %ld\n", rv);
+    IOT_SAFE_DEBUG("SCardEstablishContext failed: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -66,14 +66,14 @@ iot_safe_error_t iot_safe_pcsc_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
   rv = SCardListReaders(hContext, NULL, (LPTSTR)&mszReaders, &dwReaders);
   if (rv)
   {
-    IOT_SAFE_DEBUG("Error on SCardListReaders: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardListReaders: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 #else
   rv = SCardListReaders(hContext, NULL, NULL, &dwReaders);
   if (rv)
   {
-    IOT_SAFE_DEBUG("Error on SCardListReaders: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardListReaders: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -81,7 +81,7 @@ iot_safe_error_t iot_safe_pcsc_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
   rv = SCardListReaders(hContext, NULL, mszReaders, &dwReaders);
   if (rv)
   {
-    IOT_SAFE_DEBUG("Error on SCardListReaders: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardListReaders: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 #endif
@@ -89,7 +89,7 @@ iot_safe_error_t iot_safe_pcsc_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
     SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1, &hCard, &dwActiveProtocol);
   if (rv)
   {
-    IOT_SAFE_DEBUG("Error on SCardConnect: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardConnect: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -107,14 +107,14 @@ iot_safe_error_t iot_safe_pcsc_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
   rv = SCardTransmit(hCard, &pioSendPci, apdu_cmd, apdu_cmd_size, NULL,
     pbRecvBuffer, &dwRecvLength);
   if (rv) {
-    IOT_SAFE_DEBUG("Error on SCardTransmit: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardTransmit: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
   IOT_SAFE_DEBUG("response: ");
   for(i=0; i<dwRecvLength; i++)
     IOT_SAFE_DEBUG("%02X ", pbRecvBuffer[i]);
-  IOT_SAFE_DEBUG("\n");
+  IOT_SAFE_DEBUG("\r\n");
 
   error_code =
     pbRecvBuffer[dwRecvLength - 2] << 8 | pbRecvBuffer[dwRecvLength-1];
@@ -127,7 +127,7 @@ iot_safe_error_t iot_safe_pcsc_sendAPDU(uint8_t cla, uint8_t ins, uint8_t p1,
       memcpy(response, pbRecvBuffer, *response_length);
     else
     {
-      IOT_SAFE_DEBUG("Response too long for buffer (%d > %d)\n",
+      IOT_SAFE_DEBUG("Response too long for buffer (%d > %d)\r\n",
         *response_length, response_size);
       return IOT_SAFE_ERROR_UNKNOWN;
     }
@@ -137,7 +137,7 @@ error:
   rv = SCardDisconnect(hCard, SCARD_LEAVE_CARD);
   if (rv)
   {
-    IOT_SAFE_DEBUG("Error on SCardDisconnect: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardDisconnect: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -145,7 +145,7 @@ error:
   rv = SCardFreeMemory(hContext, mszReaders);
   if (rv)
   {
-    IOT_SAFE_DEBUG("Error on SCardFreeMemory: %ld\n", rv);
+    IOT_SAFE_DEBUG("Error on SCardFreeMemory: %ld\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
 
@@ -156,7 +156,7 @@ error:
   rv = SCardReleaseContext(hContext);
   if (rv)
   {
-    IOT_SAFE_DEBUG("SCardReleaseContext: %d\n", rv);
+    IOT_SAFE_DEBUG("SCardReleaseContext: %d\r\n", rv);
     return IOT_SAFE_ERROR_UNKNOWN;
   }
   
