@@ -31,11 +31,16 @@ This library has been tested with applets from two different manufacturers on:
  * Orange LoRa Explorer with Orange Live Booster (Sequans Monarch GMS01Q)
  * Linux (RPi)
 
-### Arduino MKR NB 1500
+### Arduino
 
-On Arduino MKR NB 1500, this library forwards the IoT SAFE commands from the
-Rich OS to the applet thanks to AT CSIM commands (which must be supported by
-the modem).
+On Arduino, this library forwards the IoT SAFE commands from the Rich OS to the
+applet thanks to AT CSIM commands (which must be supported by the modem).
+
+The Arduino samples use
+[ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL) in version
+1.7.0.
+
+#### Arduino MKR NB 1500
 
 Four examples are available:
  * a basic example (without any network connection)
@@ -44,27 +49,16 @@ Four examples are available:
  * an example establishing a mutual MQTTS connection with AWS IoT Core
    (through just-in-time registration)
 
-The Arduino samples use
-[ArduinoBearSSL](https://github.com/arduino-libraries/ArduinoBearSSL).
-
 The LiveObjects Arduino MKR NB 1500 sample has been tested over Ethernet (using
 an Ethernet shield and the SIM card for IoT SAFE only) as well as over
 cellular connectivity.
 
-The Azure IoT Hub Arduino MKR NB 1500 sample has been tested over cellular
+The Azure IoT Hub and AWS IoT Core samples have been tested over cellular
 connectivity.
 
-The AWS IoT Core Arduino MKR NB 1500 sample has been tested over cellular
-connectivity. This example depends on the master branch of ArduinoBearSSL
-to be able to provide the client certificate chain for Just-in-time
-provisioning (until version 1.7.0 is released).
+#### Arduino with [Orange Live Booster (Sequans Monarch GMS01Q)](https://blog.liveobjects.orange-business.com/gms01q-stmod)
 
-### Arduino with [Orange Live Booster (Sequans Monarch GMS01Q)](https://blog.liveobjects.orange-business.com/gms01q-stmod)
-
-On "standard" Arduino (e.g. STM32 Nucleo-WB55 or Orange LoRa Explorer), this
-library forwards the IoT SAFE commands from the Rich OS to the applet thanks to
-AT CSIM commands (which must be supported by the modem). To manage the Sequans
-Monarch GMS01Q modem, this library uses
+To manage the Sequans Monarch GMS01Q modem, this library uses
 [TinyGSM](https://github.com/vshymanskyy/TinyGSM) which is licensed under
 LGPL-3.0.
 
