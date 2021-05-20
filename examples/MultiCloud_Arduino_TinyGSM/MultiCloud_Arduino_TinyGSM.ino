@@ -438,15 +438,6 @@ void connectionManager(bool _way = 1) {
           iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
           sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
 
-        root_ca_certificate =
-          iotSAFE.readCertificate(IOT_SAFE_CA_CERTIFICATE_FILE_ID,
-          sizeof(IOT_SAFE_CA_CERTIFICATE_FILE_ID));
-
-        br_x509_certificate br_chain[2];
-        br_chain[0] = client_certificate.getCertificate();
-        br_chain[1] = root_ca_certificate.getCertificate();
-        sslClient.setEccChain(br_chain, 2);
-
         mqttClient.setId(client_certificate.getCertificateCommonName());
 
         endpoint_file =
@@ -459,8 +450,19 @@ void connectionManager(bool _way = 1) {
         SERIAL_PORT_MONITOR.println("'");
 
         // Username and password are only needed with Live Objects
-        if (!strcmp(mqtt_broker.c_str(),live_objects_broker))
+        // Live Objects does not need root CA so don't read it to speed up connection
+        if (!strcmp(mqtt_broker.c_str(),live_objects_broker)) {
           mqttClient.setUsernamePassword(mqtt_user, mqtt_pass);
+          sslClient.setEccCert(client_certificate.getCertificate());
+        } else {
+         root_ca_certificate =
+          iotSAFE.readCertificate(IOT_SAFE_CA_CERTIFICATE_FILE_ID,
+            sizeof(IOT_SAFE_CA_CERTIFICATE_FILE_ID));
+          br_x509_certificate br_chain[2];
+          br_chain[0] = client_certificate.getCertificate();
+          br_chain[1] = root_ca_certificate.getCertificate();
+          sslClient.setEccChain(br_chain, 2);
+        }
 
         if (!mqttClient.connect(mqtt_broker.c_str(), mqtt_port))
           SERIAL_PORT_MONITOR.println("Unable to connect, retry in 25 seconds");
