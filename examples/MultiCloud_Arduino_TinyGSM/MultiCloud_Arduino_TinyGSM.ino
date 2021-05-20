@@ -364,7 +364,6 @@ void setup() {
   SERIAL_PORT_MONITOR.println("Start sample...");
   SerialAT.begin(SERIAL_AT_SPEED);
 
-  delay(10000);
   SERIAL_PORT_MONITOR.println("Initializing modem...");
   while (!SerialAT || !modem.init()) {
     SERIAL_PORT_MONITOR.println("Init failed retrying ...");
@@ -465,7 +464,7 @@ void connectionManager(bool _way = 1) {
         }
 
         if (!mqttClient.connect(mqtt_broker.c_str(), mqtt_port))
-          SERIAL_PORT_MONITOR.println("Unable to connect, retry in 25 seconds");
+          SERIAL_PORT_MONITOR.println("Unable to connect, retry later");
         else
           break;
       }

@@ -190,7 +190,6 @@ void setup() {
   SERIAL_PORT_MONITOR.println("Start sample...");
   SerialAT.begin(SERIAL_AT_SPEED);
 
-  delay(10000);
   SERIAL_PORT_MONITOR.println("Initializing modem...");
   while (!SerialAT || !modem.init()) {
     SERIAL_PORT_MONITOR.println("Init failed retrying ...");
@@ -257,15 +256,15 @@ void connectionManager(bool _way = 1) {
         // - a new key pair must be generated,
         // - the CSR must be send through OTA
         // - the certificate must be send back by OTA
-        SERIAL_PORT_MONITOR.println("Waiting 20 seconds to let time for the IoT SAFE OBKG process");
-        delay(20000);
+        SERIAL_PORT_MONITOR.println("Waiting 25 seconds to let time for the IoT SAFE OBKG process");
+        delay(25000);
         client_certificate =
           iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
           sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
         sslClient.setEccCert(client_certificate.getCertificate());
         mqttClient.setId(client_certificate.getCertificateCommonName());
         if (!mqttClient.connect(mqtt_broker, mqtt_port))
-          SERIAL_PORT_MONITOR.println("Unable to connect, retry in 20 seconds");
+          SERIAL_PORT_MONITOR.println("Unable to connect, retry later");
         else
           break;
       }
