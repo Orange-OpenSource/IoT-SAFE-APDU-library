@@ -14,11 +14,17 @@
 
 #define DEFAULT_TX_FREQUENCY 60
 
+// Define it to send values retrieved through MKRENV shield
+#define IOT_SAFE_MKRENV
+
 #include "arduino_secrets.h"
 #include <ArduinoBearSSL.h>
 #include <ArduinoMqttClient.h>
 #include <ArduinoJson.h>
 #include <MKRNB.h>
+#ifdef IOT_SAFE_MKRENV
+#include <Arduino_MKRENV.h>
+#endif
 
 // Comment to disable Ethernet and use cellular connection
 //#define ETHERNET_ENABLED
@@ -52,6 +58,15 @@ uint32_t transmissionFrequency = DEFAULT_TX_FREQUENCY * 1000;
 uint32_t lastTransmission = DEFAULT_TX_FREQUENCY * 1000;
 
 uint32_t uptimeInSec = 0;
+#ifdef IOT_SAFE_MKRENV
+float temp = 0;
+float humidity = 0;
+float pressure = 0;
+float illuminance = 0;
+float uva = 0;
+float uvb = 0;
+float uvIndex = 0;
+#endif
 
 StaticJsonDocument<350> payload;
 
@@ -212,6 +227,11 @@ unsigned long getTime() {
 void setup() {
   SERIAL_PORT_MONITOR.begin(115200);
   while (!SERIAL_PORT_MONITOR);
+
+#ifdef IOT_SAFE_MKRENV
+  if (!ENV.begin())
+    SERIAL_PORT_MONITOR.println("Failed to initialize MKR ENV Shield!");
+#endif
 
   // start modem test (reset and check response)
   SERIAL_PORT_MONITOR.print("Starting modem test...");
@@ -384,6 +404,17 @@ void updateConfig() {
 
 void sampleData() {
   uptimeInSec = millis()/1000;
+
+#ifdef IOT_SAFE_MKRENV
+  // read all the sensor values
+  temp = ENV.readTemperature();
+  humidity = ENV.readHumidity();
+  pressure = ENV.readPressure();
+  illuminance = ENV.readIlluminance();
+  uva = ENV.readUVA();
+  uvb = ENV.readUVB();
+  uvIndex = ENV.readUVIndex();
+#endif
 }
 
 void sendData() {
@@ -391,6 +422,15 @@ void sendData() {
   deserializeJson(payload, JSONdata);
  
   payload[F("value")][F("uptime")] = uptimeInSec;
+#ifdef IOT_SAFE_MKRENV
+  payload[F("value")][F("temperature")] = temp;
+  payload[F("value")][F("humidity")] = humidity;
+  payload[F("value")][F("pressure")] = pressure;
+  payload[F("value")][F("illuminance")] = illuminance;
+  payload[F("value")][F("uva")] = uva;
+  payload[F("value")][F("uvb")] = uvb;
+  payload[F("value")][F("uvIndex")] = uvIndex;
+#endif
   
   char _buffer[300];
   serializeJson(payload, _buffer);
