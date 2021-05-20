@@ -61,6 +61,7 @@ int mqtt_port = 8883;
 const char mqtt_pubdata[] = "dev/data";
 const char mqtt_pubcfg[] = "dev/cfg";
 const char mqtt_subcfg[] = "dev/cfg/upd";
+const char mqtt_subcmd[] = "dev/cmd";
 
 const char* JSONdata = "{\"model\":\"github_sample_MKR\",\"value\":{\"uptime\":0}}";
 const char* JSONcfg= "{\"cfg\":{\"transmit frequency (s)\":{\"t\":\"u32\",\"v\":0}}}";
@@ -69,7 +70,9 @@ uint32_t transmissionFrequency = DEFAULT_TX_FREQUENCY * 1000;
 uint32_t lastTransmission = DEFAULT_TX_FREQUENCY * 1000;
 
 uint32_t uptimeInSec = 0;
+#ifdef _VARIANT_SODAQ_EXPLORER_
 float temp = 0;
+#endif
 
 StaticJsonDocument<350> payload;
 
@@ -294,6 +297,51 @@ static const br_x509_trust_anchor myTAs[16] = {
   }
 };
 
+#ifdef _VARIANT_SODAQ_EXPLORER_
+void RED() {
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_BLUE, HIGH);
+}
+
+void GREEN() {
+  digitalWrite(LED_RED, HIGH);
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_BLUE, HIGH);
+}
+
+void BLUE() {
+  digitalWrite(LED_RED, HIGH);
+  digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_BLUE, LOW);
+}
+#elif defined(STM32WB55xx)
+void RED() {
+  digitalWrite(LED_RED, HIGH);
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_BLUE, LOW);
+}
+
+void GREEN() {
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_BLUE, LOW);
+}
+
+void BLUE() {
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_BLUE, HIGH);
+}
+#else
+void RED() {
+}
+void GREEN() {
+}
+void BLUE() {
+}
+#endif
+
 #ifdef DUMP_AT_COMMANDS
 #include <StreamDebugger.h>
 StreamDebugger debugger(SerialAT, SERIAL_PORT_MONITOR);
@@ -311,6 +359,7 @@ MqttClient mqttClient(sslClient);
 void connectionManager(bool _way);
 void onMessageReceived(int messageSize);
 void updateConfig();
+void command();
 
 extern "C" {
   /**
@@ -381,6 +430,11 @@ void setup() {
 #ifdef _VARIANT_SODAQ_EXPLORER_
   // Define temperature pin as input
   pinMode(TEMP_SENSOR, INPUT);
+
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
+  pinMode(LED_BLUE, OUTPUT);
+  RED();
 #endif
 
   connectionManager(1);
@@ -411,6 +465,7 @@ void loop() {
 void connectionManager(bool _way = 1) {
   switch (_way) {
     case 1:
+      RED();
       SERIAL_PORT_MONITOR.println("Connecting to cellular network");
 #ifdef PIN_NUMBER
       // Unlock your SIM card with a PIN if needed
@@ -432,7 +487,7 @@ void connectionManager(bool _way = 1) {
         // - the CSR must be send through OTA
         // - the certificate must be send back by OTA
         SERIAL_PORT_MONITOR.println("Waiting 25 seconds to let time for the IoT SAFE OBKG process");
-        delay(25000);        
+        delay(25000);
         client_certificate =
           iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
           sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
@@ -471,8 +526,10 @@ void connectionManager(bool _way = 1) {
 
       SERIAL_PORT_MONITOR.println("You're connected to the MQTT broker");
       SERIAL_PORT_MONITOR.println();
+      GREEN();
 
       mqttClient.subscribe(mqtt_subcfg);
+      mqttClient.subscribe(mqtt_subcmd);
       mqttClient.poll();
 
       break;
@@ -488,6 +545,7 @@ void connectionManager(bool _way = 1) {
 }
 
 void publishMessage(const char* topic, const char* _buffer) {
+  BLUE();
   SERIAL_PORT_MONITOR.print("Publishing message on topic '");
   mqttClient.beginMessage(topic);
   mqttClient.print(_buffer);
@@ -495,9 +553,12 @@ void publishMessage(const char* topic, const char* _buffer) {
   SERIAL_PORT_MONITOR.print(topic);
   SERIAL_PORT_MONITOR.println("':");
   SERIAL_PORT_MONITOR.println(_buffer);
+  delay(5000);
+  GREEN();
 }
   
 void onMessageReceived(int messageSize) {
+  BLUE();
   String topic = mqttClient.messageTopic();
   SERIAL_PORT_MONITOR.print("Received a message with topic '");
   SERIAL_PORT_MONITOR.print(topic);
@@ -517,8 +578,15 @@ void onMessageReceived(int messageSize) {
   if (topic == F("dev/cfg/upd"))
     updateConfig();
   else if (topic == F("dev/cmd"))
-    //command();
-    ;
+    command();
+  GREEN();
+}
+
+void command() {
+  lastTransmission = 0;
+  connectionManager(0);
+  modem.restart();
+  delay(5000);
 }
 
 void updateConfig() {
@@ -546,9 +614,6 @@ void sampleData() {
   // 10mV per C, 0C is 500mV
   float mVolts = (float)analogRead(TEMP_SENSOR) * 3300.0 / 1023.0;
   temp = (mVolts - 500.0) / 10.0;
-
-  SERIAL_PORT_MONITOR.print(temp);
-  SERIAL_PORT_MONITOR.println(" C");
 #endif
 }
 
@@ -557,7 +622,9 @@ void sendData() {
   deserializeJson(payload, JSONdata);
  
   payload[F("value")][F("uptime")] = uptimeInSec;
+#ifdef _VARIANT_SODAQ_EXPLORER_
   payload[F("value")][F("temperature")] = temp;
+#endif
   
   char _buffer[300];
   serializeJson(payload, _buffer);
