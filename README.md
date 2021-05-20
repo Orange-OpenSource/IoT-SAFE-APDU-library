@@ -42,12 +42,14 @@ The Arduino samples use
 
 #### Arduino MKR NB 1500
 
-Four examples are available:
+Five examples are available:
  * a basic example (without any network connection)
  * an example establishing a mutual MQTTS connection with Orange Live Objects
  * an example establishing a mutual MQTTS connection with Azure IoT Hub
  * an example establishing a mutual MQTTS connection with AWS IoT Core
    (through just-in-time registration)
+ * an example establishing a mutual MQTTS connection with Orange Live Objects
+   or AWS IoT Core
 
 The LiveObjects Arduino MKR NB 1500 sample has been tested over Ethernet (using
 an Ethernet shield and the SIM card for IoT SAFE only) as well as over
@@ -61,6 +63,11 @@ connectivity.
 To manage the Sequans Monarch GMS01Q modem, this library uses
 [TinyGSM](https://github.com/vshymanskyy/TinyGSM) which is licensed under
 LGPL-3.0.
+
+Two examples are available:
+ * an example establishing a mutual MQTTS connection with Orange Live Objects
+ * an example establishing a mutual MQTTS connection with Orange Live Objects
+   or AWS IoT Core
 
 The Arduino with Orange Live Booster sample has been tested over cellular
 connectivity. This sample also depends on
