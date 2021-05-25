@@ -16,6 +16,8 @@
 #include <Arduino.h>
 #if defined(ARDUINO_SAMD_MKRNB1500)
 #include <MKRNB.h>
+#elif defined(ARDUINO_SAMD_MKRGSM1400)
+#include <MKRGSM.h>
 #else
 #define TINY_GSM_MODEM_SEQUANS_MONARCH
 #include <TinyGsmClient.h>
@@ -74,14 +76,14 @@ iot_safe_error_t iot_safe_arduino_sendAT(const char *at, uint8_t *response,
   uint8_t quote = 0;
   uint8_t csim_start = 0;
 
-#if defined(ARDUINO_SAMD_MKRNB1500)
+#if defined(ARDUINO_SAMD_MKRNB1500) || defined(ARDUINO_SAMD_MKRGSM1400)
   quote = 1;
   MODEM.sendf("AT+CSIM=%d,\"%s\"", strlen(at), at);
 #else
   modem.sendAT("+CSIM=", strlen(at), ",\"", at, "\"");
 #endif
   delay(100);
-#if defined(ARDUINO_SAMD_MKRNB1500)
+#if defined(ARDUINO_SAMD_MKRNB1500) || defined(ARDUINO_SAMD_MKRGSM1400)
   if (MODEM.waitForResponse(IOT_SAFE_AT_TIMER, &raw_response) == 1)
   {
     if (!raw_response.startsWith("+CSIM: "))
