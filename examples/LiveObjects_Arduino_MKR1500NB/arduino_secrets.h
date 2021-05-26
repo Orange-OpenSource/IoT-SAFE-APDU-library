@@ -1,3 +1,6 @@
 #define PIN_NUMBER "1234"
+#define GPRS_APN ""
+#define GPRS_LOGIN ""
+#define GPRS_PASSWORD ""
 #define SECRET_MQTTUSER "json+device"
 //#define SECRET_MQTTPASS "...put your API key here..."

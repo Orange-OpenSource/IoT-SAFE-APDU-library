@@ -21,7 +21,11 @@
 #include <ArduinoBearSSL.h>
 #include <ArduinoMqttClient.h>
 #include <ArduinoJson.h>
+#ifdef ARDUINO_SAMD_MKRNB1500
 #include <MKRNB.h>
+#elif defined(ARDUINO_SAMD_MKRGSM1400)
+#include <MKRGSM.h>
+#endif
 #ifdef IOT_SAFE_MKRENV
 #include <Arduino_MKRENV.h>
 #endif
@@ -142,18 +146,30 @@ byte packetBuffer[NTP_PACKET_SIZE]; // buffer to hold incoming and outgoing pack
 // A UDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
 
-EthernetClient nbClient;
+EthernetClient client;
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xA5, 0x7E };
 #else
-GPRS gprs;
-NBClient nbClient;
+#ifdef ARDUINO_SAMD_MKRNB1500
+NBClient client;
+#elif defined(ARDUINO_SAMD_MKRGSM1400)
+GSMClient client;
+#endif
 #endif
 
+#ifdef ARDUINO_SAMD_MKRNB1500
 NBModem modem;
-NB nbAccess;
+NB access;
+#define ACCESS_READY NB_READY
+#elif defined(ARDUINO_SAMD_MKRGSM1400)
+GSMModem modem;
+GSM access;
+GPRS gprs;
+GSMPIN PINManager;
+#define ACCESS_READY GSM_READY
+#endif
 IoTSAFE iotSAFE(IOT_SAFE_CUSTOM_AID, sizeof(IOT_SAFE_CUSTOM_AID));
 IoTSAFECertificate client_certificate;
-BearSSLClient sslClient(nbClient,TAs,1);
+BearSSLClient sslClient(client,TAs,1);
 MqttClient mqttClient(sslClient);
 
 void connectionManager(bool _way);
@@ -220,7 +236,7 @@ unsigned long getTime() {
 #else
   SERIAL_PORT_MONITOR.println("Getting time from the cellular module...");
   // get the current time from the cellular module
-  return nbAccess.getTime();
+  return access.getTime();
 #endif
 }
 
@@ -231,6 +247,10 @@ void setup() {
 #ifdef IOT_SAFE_MKRENV
   if (!ENV.begin())
     SERIAL_PORT_MONITOR.println("Failed to initialize MKR ENV Shield!");
+#endif
+
+#ifdef ARDUINO_SAMD_MKRGSM1400
+  PINManager.begin();
 #endif
 
   // start modem test (reset and check response)
@@ -284,7 +304,7 @@ void loop() {
 #ifdef ETHERNET_ENABLED
     if (!mqttClient.connected())
 #else
-    if (nbAccess.status() != NB_READY || !mqttClient.connected())
+    if (access.status() != ACCESS_READY || !mqttClient.connected())
 #endif
       connectionManager(1);
 
@@ -301,10 +321,23 @@ void connectionManager(bool _way = 1) {
 #ifndef ETHERNET_ENABLED
       SERIAL_PORT_MONITOR.println("Connecting to cellular network");
 #ifdef PIN_NUMBER
-      while (nbAccess.begin(PIN_NUMBER) != NB_READY)
+      while (access.begin(PIN_NUMBER) != ACCESS_READY)
 #else
-      while (nbAccess.begin() != NB_READY)
+      while (access.begin() != ACCESS_READY)
 #endif
+        SERIAL_PORT_MONITOR.print(".");
+#endif
+
+#ifdef ARDUINO_SAMD_MKRGSM1400
+      if (PINManager.checkReg() == 1) {
+        SERIAL_PORT_MONITOR.println("Waiting 3 seconds to avoid ERROR on MKRGSM1400 when roaming ...");
+        delay(3000);
+      }
+
+      SERIAL_PORT_MONITOR.print("Connecting to APN '");
+      SERIAL_PORT_MONITOR.print(GPRS_APN);
+      SERIAL_PORT_MONITOR.println("'");
+      while (gprs.attachGPRS(GPRS_APN, GPRS_LOGIN, GPRS_PASSWORD) != GPRS_READY)
         SERIAL_PORT_MONITOR.print(".");
 #endif
 
@@ -346,7 +379,7 @@ void connectionManager(bool _way = 1) {
       SERIAL_PORT_MONITOR.println("Closing MQTT connection...");
       mqttClient.stop();
       SERIAL_PORT_MONITOR.println("Disconnecting from cellular network...");
-      nbAccess.shutdown();
+      access.shutdown();
       SERIAL_PORT_MONITOR.println("Offline.");
       break;
   }
