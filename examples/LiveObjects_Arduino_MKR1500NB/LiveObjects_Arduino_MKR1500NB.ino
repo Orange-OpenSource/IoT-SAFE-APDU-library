@@ -316,6 +316,7 @@ void loop() {
 }
 
 void connectionManager(bool _way = 1) {
+  bool obkg_done = false;
   switch (_way) {
     case 1:
 #ifndef ETHERNET_ENABLED
@@ -329,10 +330,8 @@ void connectionManager(bool _way = 1) {
 #endif
 
 #ifdef ARDUINO_SAMD_MKRGSM1400
-      if (PINManager.checkReg() == 1) {
-        SERIAL_PORT_MONITOR.println("Waiting 3 seconds to avoid ERROR on MKRGSM1400 when roaming ...");
-        delay(3000);
-      }
+      SERIAL_PORT_MONITOR.println("Waiting 3 seconds to avoid ERROR on MKRGSM1400 ...");
+      delay(3000);
 
       SERIAL_PORT_MONITOR.print("Connecting to APN '");
       SERIAL_PORT_MONITOR.print(GPRS_APN);
@@ -348,21 +347,35 @@ void connectionManager(bool _way = 1) {
       SERIAL_PORT_MONITOR.println("'");
       
       while (true) {
-        // OBKG process can be triggered by OTA and can take some time on the applet as:
-        // - a new key pair must be generated,
-        // - the CSR must be send through OTA
-        // - the certificate must be send back by OTA
-        SERIAL_PORT_MONITOR.println("Waiting 10 seconds to let time for the IoT SAFE OBKG process");
-        delay(10000);
-        client_certificate =
-          iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
-          sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
+        if (!obkg_done) {
+          // OBKG process can be triggered by OTA and can take some time on the applet as:
+          // - a new key pair must be generated,
+          // - the CSR must be send through OTA
+          // - the certificate must be send back by OTA
+          SERIAL_PORT_MONITOR.println("Waiting 10 seconds to let time for the IoT SAFE OBKG process");
+          delay(10000);
+          client_certificate =
+            iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
+            sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
+        }
         sslClient.setEccCert(client_certificate.getCertificate());
         mqttClient.setId(client_certificate.getCertificateCommonName());
         SERIAL_PORT_MONITOR.print("CertificateCommonName: ");
         SERIAL_PORT_MONITOR.println(client_certificate.getCertificateCommonName());
-        if (!mqttClient.connect(mqtt_broker, mqtt_port))
-          SERIAL_PORT_MONITOR.println("Unable to connect, retry in 10 seconds");
+        if (!mqttClient.connect(mqtt_broker, mqtt_port)) {
+          SERIAL_PORT_MONITOR.println("Unable to connect, retry later");
+#ifdef ARDUINO_SAMD_MKRGSM1400
+          SERIAL_PORT_MONITOR.println("Reset modem after OBKG process to avoid ERROR on MKRGSM1400 and assume that OBKG is done to gain a few seconds...");
+          obkg_done = true;
+          while (access.begin(PIN_NUMBER) != ACCESS_READY)
+            SERIAL_PORT_MONITOR.print(".");
+          SERIAL_PORT_MONITOR.println("Waiting 3 seconds to avoid ERROR on MKRGSM1400 ...");
+          delay(3000);
+          while (gprs.attachGPRS(GPRS_APN, GPRS_LOGIN, GPRS_PASSWORD) != GPRS_READY) {
+            SERIAL_PORT_MONITOR.print(".");
+          }
+#endif
+        }
         else
           break;
       }
