@@ -68,6 +68,7 @@ uint32_t lastTransmission = DEFAULT_TX_FREQUENCY * 1000;
 
 uint32_t uptimeInSec = 0;
 #ifdef IOT_SAFE_MKRENV
+bool envEnable = false;
 float temp = 0;
 float humidity = 0;
 float pressure = 0;
@@ -405,6 +406,8 @@ void setup() {
 #ifdef IOT_SAFE_MKRENV
   if (!ENV.begin())
     SERIAL_PORT_MONITOR.println("Failed to initialize MKR ENV Shield!");
+  else
+    envEnable = true;
 #endif
 
   // start modem test (reset and check response)
@@ -598,14 +601,16 @@ void sampleData() {
   uptimeInSec = millis()/1000;
 
 #ifdef IOT_SAFE_MKRENV
-  // read all the sensor values
-  temp = ENV.readTemperature();
-  humidity = ENV.readHumidity();
-  pressure = ENV.readPressure();
-  illuminance = ENV.readIlluminance();
-  uva = ENV.readUVA();
-  uvb = ENV.readUVB();
-  uvIndex = ENV.readUVIndex();
+  if (envEnable) {
+    // read all the sensor values
+    temp = ENV.readTemperature();
+    humidity = ENV.readHumidity();
+    pressure = ENV.readPressure();
+    illuminance = ENV.readIlluminance();
+    uva = ENV.readUVA();
+    uvb = ENV.readUVB();
+    uvIndex = ENV.readUVIndex();
+  }
 #endif
 }
 
@@ -615,13 +620,15 @@ void sendData() {
  
   payload[F("value")][F("uptime")] = uptimeInSec;
 #ifdef IOT_SAFE_MKRENV
-  payload[F("value")][F("temperature")] = temp;
-  payload[F("value")][F("humidity")] = humidity;
-  payload[F("value")][F("pressure")] = pressure;
-  payload[F("value")][F("illuminance")] = illuminance;
-  payload[F("value")][F("uva")] = uva;
-  payload[F("value")][F("uvb")] = uvb;
-  payload[F("value")][F("uvIndex")] = uvIndex;
+  if (envEnable) {
+    payload[F("value")][F("temperature")] = temp;
+    payload[F("value")][F("humidity")] = humidity;
+    payload[F("value")][F("pressure")] = pressure;
+    payload[F("value")][F("illuminance")] = illuminance;
+    payload[F("value")][F("uva")] = uva;
+    payload[F("value")][F("uvb")] = uvb;
+    payload[F("value")][F("uvIndex")] = uvIndex;
+  }
 #endif
   
   char _buffer[300];
