@@ -491,6 +491,8 @@ void connectionManager(bool _way = 1) {
           sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
 
         mqttClient.setId(client_certificate.getCertificateCommonName());
+        SERIAL_PORT_MONITOR.print("CertificateCommonName: ");
+        SERIAL_PORT_MONITOR.println(client_certificate.getCertificateCommonName());
         
         endpoint_file =
           iotSAFE.readCertificate(IOT_SAFE_ENDPOINT_FILE_ID,

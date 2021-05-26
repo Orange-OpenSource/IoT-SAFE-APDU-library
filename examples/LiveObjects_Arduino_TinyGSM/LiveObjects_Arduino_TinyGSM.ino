@@ -328,6 +328,8 @@ void connectionManager(bool _way = 1) {
           sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
         sslClient.setEccCert(client_certificate.getCertificate());
         mqttClient.setId(client_certificate.getCertificateCommonName());
+        SERIAL_PORT_MONITOR.print("CertificateCommonName: ");
+        SERIAL_PORT_MONITOR.println(client_certificate.getCertificateCommonName());
         if (!mqttClient.connect(mqtt_broker, mqtt_port))
           SERIAL_PORT_MONITOR.println("Unable to connect, retry later");
         else
