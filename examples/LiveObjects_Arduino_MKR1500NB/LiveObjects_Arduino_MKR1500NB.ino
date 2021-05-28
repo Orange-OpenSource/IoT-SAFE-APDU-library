@@ -165,7 +165,6 @@ NB access;
 GSMModem modem;
 GSM access;
 GPRS gprs;
-GSMPIN PINManager;
 #define ACCESS_READY GSM_READY
 #endif
 IoTSAFE iotSAFE(IOT_SAFE_CUSTOM_AID, sizeof(IOT_SAFE_CUSTOM_AID));
@@ -250,10 +249,6 @@ void setup() {
     SERIAL_PORT_MONITOR.println("Failed to initialize MKR ENV Shield!");
   else
     envEnable = true;
-#endif
-
-#ifdef ARDUINO_SAMD_MKRGSM1400
-  PINManager.begin();
 #endif
 
   // start modem test (reset and check response)
