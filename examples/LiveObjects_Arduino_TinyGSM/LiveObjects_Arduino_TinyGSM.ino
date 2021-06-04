@@ -163,7 +163,6 @@ void BLUE() {
 }
 #else
 void RED() {
-PB5
 }
 
 void GREEN() {
