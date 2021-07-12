@@ -14,7 +14,7 @@
 #include <iot_safe.h>
 #include <ArduinoBearSSL.h>
 
-#define IOT_SAFE_MAX_FILE_SIZE 512
+#define IOT_SAFE_MAX_FILE_SIZE 384
 
 class IoTSAFECertificate
 {
