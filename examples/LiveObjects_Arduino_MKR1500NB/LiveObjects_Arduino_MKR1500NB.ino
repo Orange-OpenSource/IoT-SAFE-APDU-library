@@ -20,6 +20,9 @@
 // Define it to send values retrieved through MKRENV shield
 #define IOT_SAFE_MKRENV
 
+// Define it to display values retrieved through MKRRGB shield
+#define IOT_SAFE_MKRRGB
+
 #include "arduino_secrets.h"
 #include <ArduinoBearSSL.h>
 #include <ArduinoMqttClient.h>
@@ -31,6 +34,10 @@
 #endif
 #ifdef IOT_SAFE_MKRENV
 #include <Arduino_MKRENV.h>
+#endif
+#ifdef IOT_SAFE_MKRRGB
+#include <ArduinoGraphics.h> // Arduino_MKRRGB depends on ArduinoGraphics
+#include <Arduino_MKRRGB.h>
 #endif
 
 // Comment to disable Ethernet and use cellular connection
@@ -62,7 +69,7 @@ const char* JSONdata = "{\"model\":\"github_sample_MKR\",\"value\":{\"uptime\":0
 const char* JSONcfg= "{\"cfg\":{\"transmit frequency (s)\":{\"t\":\"u32\",\"v\":0}}}";
 
 uint32_t transmissionFrequency = DEFAULT_TX_FREQUENCY * 1000;
-uint32_t lastTransmission = DEFAULT_TX_FREQUENCY * 1000;
+uint32_t lastTransmission = 0;
 
 uint32_t uptimeInSec = 0;
 #ifdef IOT_SAFE_MKRENV
@@ -74,6 +81,15 @@ float illuminance = 0;
 float uva = 0;
 float uvb = 0;
 float uvIndex = 0;
+#endif
+
+#ifdef IOT_SAFE_MKRRGB
+bool rgbEnable = false;
+#if defined(ARDUINO_SAMD_MKRGSM1400)
+uint8_t countdown = 4;
+#else
+uint8_t countdown = 3;
+#endif
 #endif
 
 StaticJsonDocument<350> payload;
@@ -254,6 +270,23 @@ void setup() {
     envEnable = true;
 #endif
 
+#ifdef IOT_SAFE_MKRRGB
+  // initialize the display
+  if (!MATRIX.begin())
+    SERIAL_PORT_MONITOR.println("Failed to initialize MKR RGB Shield!");
+  else
+    rgbEnable = true;
+
+  if (rgbEnable) {
+    MATRIX.brightness(1);
+    MATRIX.stroke(255, 121, 0);
+    MATRIX.textScrollSpeed(150);
+    MATRIX.beginText(4, 0, 255, 121, 0);
+    MATRIX.print(countdown--);
+    MATRIX.endText();
+  }
+#endif
+
   // start modem test (reset and check response)
   SERIAL_PORT_MONITOR.print("Starting modem test...");
   if (modem.begin()) {
@@ -310,7 +343,32 @@ void loop() {
       connectionManager(1);
 
     sendData();
+#ifdef IOT_SAFE_MKRRGB
+    if (rgbEnable) {
+      MATRIX.clear();
+      MATRIX.beginText(12, 0);
+      if (temp != 0) {
+        MATRIX.print("T: ");
+        MATRIX.print(temp);
+        MATRIX.print("°C");
+      }
+      if (illuminance != 0) {
+        MATRIX.print("   Lumen: ");
+        MATRIX.print(illuminance);
+      }
+      MATRIX.endText(SCROLL_LEFT);
+    }
+#endif
   }
+
+#ifdef IOT_SAFE_MKRRGB
+  if (rgbEnable) {
+    MATRIX.clear();
+    MATRIX.beginText(12, 0);
+    MATRIX.print("Secured");
+    MATRIX.endText(SCROLL_LEFT);
+  }
+#endif
 
   delay (1000);
   mqttClient.poll();
@@ -334,6 +392,14 @@ void connectionManager(bool _way = 1) {
       SERIAL_PORT_MONITOR.println("Waiting 3 seconds to avoid ERROR on MKRGSM1400 ...");
       delay(3000);
 
+#ifdef IOT_SAFE_MKRRGB
+      if (rgbEnable) {
+        MATRIX.beginText(4, 0);
+        MATRIX.print(countdown--);
+        MATRIX.endText();
+      }
+#endif
+
       SERIAL_PORT_MONITOR.print("Connecting to APN '");
       SERIAL_PORT_MONITOR.print(GPRS_APN);
       SERIAL_PORT_MONITOR.println("'");
@@ -342,7 +408,15 @@ void connectionManager(bool _way = 1) {
 #endif
 
       SERIAL_PORT_MONITOR.println("You're connected to the network");
-      
+
+#ifdef IOT_SAFE_MKRRGB
+      if (rgbEnable) {
+        MATRIX.beginText(4, 0);
+        MATRIX.print(countdown--);
+        MATRIX.endText();
+      }
+#endif
+
       SERIAL_PORT_MONITOR.print("Connecting to MQTT broker '");
       SERIAL_PORT_MONITOR.print(mqtt_broker);
       SERIAL_PORT_MONITOR.println("'");
@@ -358,11 +432,26 @@ void connectionManager(bool _way = 1) {
           client_certificate =
             iotSAFE.readCertificate(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID,
             sizeof(IOT_SAFE_CLIENT_CERTIFICATE_FILE_ID));
+
+#ifdef IOT_SAFE_MKRRGB
+          if (rgbEnable) {
+              MATRIX.beginText(4, 0);
+              MATRIX.print(countdown--);
+              MATRIX.endText();
+          }
+#endif
         }
         sslClient.setEccCert(client_certificate.getCertificate());
         mqttClient.setId(client_certificate.getCertificateCommonName());
         SERIAL_PORT_MONITOR.print("CertificateCommonName: ");
         SERIAL_PORT_MONITOR.println(client_certificate.getCertificateCommonName());
+#ifdef IOT_SAFE_MKRRGB
+          if (rgbEnable && !strcmp(client_certificate.getCertificateCommonName().c_str(),"")) {
+            MATRIX.beginText(0, 0);
+            MATRIX.print("Revoked");
+            MATRIX.endText(SCROLL_LEFT);
+          }
+#endif
         if (!mqttClient.connect(mqtt_broker, mqtt_port)) {
           SERIAL_PORT_MONITOR.println("Unable to connect, retry later");
 #ifdef ARDUINO_SAMD_MKRGSM1400
@@ -380,7 +469,7 @@ void connectionManager(bool _way = 1) {
         else
           break;
       }
-      
+
       SERIAL_PORT_MONITOR.println("You're connected to the MQTT broker");
       SERIAL_PORT_MONITOR.println();
 
@@ -455,7 +544,7 @@ void sampleData() {
   uptimeInSec = millis()/1000;
 
 #ifdef IOT_SAFE_MKRENV
-  if (envEnable) {
+  if (envEnable && ENV.begin()) {
     // read all the sensor values
     temp = ENV.readTemperature();
     humidity = ENV.readHumidity();
