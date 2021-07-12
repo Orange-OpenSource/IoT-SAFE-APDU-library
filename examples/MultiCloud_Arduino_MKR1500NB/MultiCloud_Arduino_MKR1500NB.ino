@@ -400,8 +400,8 @@ unsigned long getTime() {
 }
 
 void setup() {
-  SERIAL_PORT_MONITOR.begin(115200);
-  while (!SERIAL_PORT_MONITOR);
+  /*SERIAL_PORT_MONITOR.begin(115200);
+  while (!SERIAL_PORT_MONITOR);*/
 
 #ifdef IOT_SAFE_MKRENV
   if (!ENV.begin())

@@ -236,7 +236,7 @@ unsigned long getTime()
 
 void setup() {
   SERIAL_PORT_MONITOR.begin(115200);
-  while (!SERIAL_PORT_MONITOR);
+  //while (!SERIAL_PORT_MONITOR);
 
   SERIAL_PORT_MONITOR.println("Start sample...");
   SerialAT.begin(SERIAL_AT_SPEED);
