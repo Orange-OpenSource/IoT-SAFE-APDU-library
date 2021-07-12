@@ -12,7 +12,7 @@
  *         connect to LiveObjects.
  */
 
-#define DEFAULT_TX_FREQUENCY 60
+#define DEFAULT_TX_FREQUENCY 20
 
 #define BEAR_SSL_CLIENT_OBUF_SIZE 512 + 85
 #define BEAR_SSL_CLIENT_IBUF_SIZE 7000 + 85 + 325 - BEAR_SSL_CLIENT_OBUF_SIZE
